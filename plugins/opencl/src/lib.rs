@@ -59,7 +59,13 @@ impl Plugin for OpenCLPlugin {
             let num_devices = platform.get_devices(CL_DEVICE_TYPE_ALL).unwrap_or(vec![]).len();
             info!("{}: {} ({} devices available)", vendor, name, num_devices);
         }
-        let amd_platforms = (&platforms).into_iter().filter(|p| p.vendor().unwrap_or("Unk".into()) == "Advanced Micro Devices, Inc." && !p.get_devices(CL_DEVICE_TYPE_ALL).unwrap_or(vec![]).is_empty()).collect::<Vec<&Platform>>();
+        let amd_platforms = (&platforms)
+            .into_iter()
+            .filter(|p| {
+                p.vendor().unwrap_or("Unk".into()) == "Advanced Micro Devices, Inc."
+                    && !p.get_devices(CL_DEVICE_TYPE_ALL).unwrap_or(vec![]).is_empty()
+            })
+            .collect::<Vec<&Platform>>();
         let _platform: &Platform = match opts.opencl_platform {
             Some(idx) => {
                 self._enabled = true;
@@ -68,10 +74,14 @@ impl Plugin for OpenCLPlugin {
             None if !opts.opencl_amd_disable && amd_platforms.len() > 0 => {
                 self._enabled = true;
                 amd_platforms[0]
-            },
+            }
             None => &platforms[0],
         };
-        info!("Chose to mine on {}: {}.", &_platform.vendor().unwrap_or("Unk".into()), &_platform.name().unwrap_or("Unk".into()));
+        info!(
+            "Chose to mine on {}: {}.",
+            &_platform.vendor().unwrap_or("Unk".into()),
+            &_platform.name().unwrap_or("Unk".into())
+        );
 
         let device_ids = _platform.get_devices(CL_DEVICE_TYPE_ALL).unwrap();
         let gpus = match opts.opencl_device {

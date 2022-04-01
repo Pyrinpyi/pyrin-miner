@@ -54,16 +54,16 @@ impl Plugin for OpenCLPlugin {
         info!("OpenCL Found Platforms:");
         info!("=======================");
         for platform in &platforms {
-            let vendor = &platform.vendor().unwrap_or("Unk".into());
-            let name = &platform.name().unwrap_or("Unk".into());
-            let num_devices = platform.get_devices(CL_DEVICE_TYPE_ALL).unwrap_or(vec![]).len();
+            let vendor = &platform.vendor().unwrap_or_else(|_| "Unk".into());
+            let name = &platform.name().unwrap_or_else(|_| "Unk".into());
+            let num_devices = platform.get_devices(CL_DEVICE_TYPE_ALL).unwrap_or_default().len();
             info!("{}: {} ({} devices available)", vendor, name, num_devices);
         }
         let amd_platforms = (&platforms)
-            .into_iter()
+            .iter()
             .filter(|p| {
-                p.vendor().unwrap_or("Unk".into()) == "Advanced Micro Devices, Inc."
-                    && !p.get_devices(CL_DEVICE_TYPE_ALL).unwrap_or(vec![]).is_empty()
+                p.vendor().unwrap_or_else(|_| "Unk".into()) == "Advanced Micro Devices, Inc."
+                    && !p.get_devices(CL_DEVICE_TYPE_ALL).unwrap_or_default().is_empty()
             })
             .collect::<Vec<&Platform>>();
         let _platform: &Platform = match opts.opencl_platform {
@@ -71,7 +71,7 @@ impl Plugin for OpenCLPlugin {
                 self._enabled = true;
                 &platforms[idx as usize]
             }
-            None if !opts.opencl_amd_disable && amd_platforms.len() > 0 => {
+            None if !opts.opencl_amd_disable && !amd_platforms.is_empty() => {
                 self._enabled = true;
                 amd_platforms[0]
             }
@@ -79,8 +79,8 @@ impl Plugin for OpenCLPlugin {
         };
         info!(
             "Chose to mine on {}: {}.",
-            &_platform.vendor().unwrap_or("Unk".into()),
-            &_platform.name().unwrap_or("Unk".into())
+            &_platform.vendor().unwrap_or_else(|_| "Unk".into()),
+            &_platform.name().unwrap_or_else(|_| "Unk".into())
         );
 
         let device_ids = _platform.get_devices(CL_DEVICE_TYPE_ALL).unwrap();

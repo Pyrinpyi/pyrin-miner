@@ -3,7 +3,7 @@ extern crate kaspa_miner;
 
 use clap::{ArgMatches, FromArgMatches};
 use kaspa_miner::{Plugin, Worker, WorkerSpec};
-use log::LevelFilter;
+use log::{info, LevelFilter};
 use opencl3::device::{Device, CL_DEVICE_TYPE_ALL};
 use opencl3::platform::{get_platforms, Platform};
 use opencl3::types::cl_device_id;
@@ -51,13 +51,27 @@ impl Plugin for OpenCLPlugin {
         self._enabled = opts.opencl_enable;
 
         let platforms = get_platforms().expect("opencl: could not find any platforms");
-        let _platform: Platform = match opts.opencl_platform {
+        info!("OpenCL Found Platforms:");
+        info!("=======================");
+        for platform in &platforms {
+            let vendor = &platform.vendor().unwrap_or("Unk".into());
+            let name = &platform.name().unwrap_or("Unk".into());
+            let num_devices = platform.get_devices(CL_DEVICE_TYPE_ALL).unwrap_or(vec![]).len();
+            info!("{}: {} ({} devices available)", vendor, name, num_devices);
+        }
+        let amd_platforms = (&platforms).into_iter().filter(|p| p.vendor().unwrap_or("Unk".into()) == "Advanced Micro Devices, Inc." && !p.get_devices(CL_DEVICE_TYPE_ALL).unwrap_or(vec![]).is_empty()).collect::<Vec<&Platform>>();
+        let _platform: &Platform = match opts.opencl_platform {
             Some(idx) => {
                 self._enabled = true;
-                platforms[idx as usize]
+                &platforms[idx as usize]
             }
-            None => platforms[0],
+            None if !opts.opencl_amd_disable && amd_platforms.len() > 0 => {
+                self._enabled = true;
+                amd_platforms[0]
+            },
+            None => &platforms[0],
         };
+        info!("Chose to mine on {}: {}.", &_platform.vendor().unwrap_or("Unk".into()), &_platform.name().unwrap_or("Unk".into()));
 
         let device_ids = _platform.get_devices(CL_DEVICE_TYPE_ALL).unwrap();
         let gpus = match opts.opencl_device {
@@ -70,7 +84,7 @@ impl Plugin for OpenCLPlugin {
 
         self.specs = (0..gpus.len())
             .map(|i| OpenCLWorkerSpec {
-                _platform,
+                _platform: *_platform,
                 device_id: Device::new(gpus[i]),
                 workload: match &opts.opencl_workload {
                     Some(workload) if i < workload.len() => workload[i],
@@ -79,7 +93,7 @@ impl Plugin for OpenCLPlugin {
                 },
                 is_absolute: opts.opencl_workload_absolute,
                 experimental_amd: opts.experimental_amd,
-                use_amd_binary: opts.opencl_amd_binary,
+                use_amd_binary: !opts.opencl_no_amd_binary,
                 random: opts.nonce_gen,
             })
             .collect();

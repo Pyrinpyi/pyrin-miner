@@ -15,7 +15,7 @@ pub type Error = Box<dyn StdError + Send + Sync + 'static>;
 mod cli;
 mod worker;
 
-use crate::cli::CudaOpt;
+use crate::cli::{CudaOpt, NonceGenEnum};
 use crate::worker::CudaGPUWorker;
 
 const DEFAULT_WORKLOAD_SCALE: f32 = 256.;
@@ -122,6 +122,7 @@ impl Plugin for CudaPlugin {
                 },
                 is_absolute: opts.cuda_workload_absolute,
                 blocking_sync: !opts.cuda_no_blocking_sync,
+                random: opts.nonce_gen,
             })
             .collect();
         Ok(())
@@ -134,11 +135,12 @@ struct CudaWorkerSpec {
     workload: f32,
     is_absolute: bool,
     blocking_sync: bool,
+    random: NonceGenEnum,
 }
 
 impl WorkerSpec for CudaWorkerSpec {
     fn build(&self) -> Box<dyn Worker> {
-        Box::new(CudaGPUWorker::new(self.device_id, self.workload, self.is_absolute, self.blocking_sync).unwrap())
+        Box::new(CudaGPUWorker::new(self.device_id, self.workload, self.is_absolute, self.blocking_sync, self.random).unwrap())
     }
 }
 

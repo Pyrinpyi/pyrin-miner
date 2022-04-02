@@ -974,6 +974,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "num_threads"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aba1801fb138d8e85e11d0fc70baf4fe1cdfffda7c6cd34a854905df588e5ed0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "nvml-wrapper"
 version = "0.7.0"
 source = "git+https://github.com/benrod3k/nvml-wrapper?branch=495.29.05#53f80372fdfdca4616a7cc65f005360b7afb1ca0"
@@ -992,15 +1001,6 @@ version = "0.5.0"
 source = "git+https://github.com/benrod3k/nvml-wrapper?branch=495.29.05#53f80372fdfdca4616a7cc65f005360b7afb1ca0"
 dependencies = [
  "libloading",
-]
-
-[[package]]
-name = "num_threads"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aba1801fb138d8e85e11d0fc70baf4fe1cdfffda7c6cd34a854905df588e5ed0"
-dependencies = [
- "libc",
 ]
 
 [[package]]
@@ -1503,6 +1503,12 @@ checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 
 [[package]]
 name = "strsim"
+version = "0.9.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6446ced80d6c486436db5c078dde11a9f73d42b57fb273121e160b84f63d894c"
+
+[[package]]
+name = "strsim"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
@@ -1913,18 +1919,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
-name = "wrapcenum-derive"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6bcc065c85ad2c3bd12aa4118bf164835712e25080c392557801a13292c60aec"
-dependencies = [
- "darling",
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "windows-sys"
 version = "0.34.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1966,6 +1960,18 @@ name = "windows_x86_64_msvc"
 version = "0.34.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d19538ccc21819d01deaf88d6a17eae6596a12e9aafdbb97916fb49896d89de9"
+
+[[package]]
+name = "wrapcenum-derive"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6bcc065c85ad2c3bd12aa4118bf164835712e25080c392557801a13292c60aec"
+dependencies = [
+ "darling",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "wyz"

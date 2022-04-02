@@ -1,3 +1,24 @@
+use crate::Error;
+use std::str::FromStr;
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum NonceGenEnum {
+    Lean,
+    Xoshiro,
+}
+
+impl FromStr for NonceGenEnum {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "lean" => Ok(Self::Lean),
+            "xoshiro" => Ok(Self::Xoshiro),
+            _ => Err("Unknown string".into()),
+        }
+    }
+}
+
 #[derive(clap::Args, Debug)]
 pub struct CudaOpt {
     #[clap(long = "cuda-device", use_delimiter = true, help = "Which CUDA GPUs to use [default: all]")]
@@ -22,5 +43,10 @@ pub struct CudaOpt {
     pub cuda_lock_core_clocks: Option<Vec<u32>>,
     #[clap(long = "cuda-power-limits", use_delimiter = true, help = "Lock power limits eg: ,150, [default: 0]")]
     pub cuda_power_limits: Option<Vec<u32>>,
-     
+    #[clap(
+    long = "nonce-gen",
+    help = "The random method used to generate nonces. Options: (i) xoshiro - each thread in GPU will have its own random state, creating a (pseudo-)independent xoshiro sequence (ii) lean - each GPU will have a single random nonce, and each GPU thread will work on nonce + thread id.",
+    default_value = "xoshiro"
+    )]
+    pub nonce_gen: NonceGenEnum,
 }

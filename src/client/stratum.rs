@@ -357,7 +357,7 @@ impl StratumHandler {
         }
 
         self.target_pool = Uint256::new(buf);
-        info!("Difficulty: {:?}, Target: 0x{:x}", difficulty, self.target_pool);
+        info!("Difficulty: {:?}, Target: 0x{}", difficulty, hex::encode(self.target_pool.to_be_bytes()));
         Ok(())
     }
 

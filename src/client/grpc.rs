@@ -21,8 +21,7 @@ use tokio_stream::wrappers::ReceiverStream;
 use tokio_util::sync::{PollSendError, PollSender};
 use tonic::{transport::Channel as TonicChannel, Streaming};
 
-static EXTRA_DATA: &str =
-    concat!(env!("CARGO_PKG_VERSION"), "/", env!("PACKAGE_COMPILE_TIME"));
+static EXTRA_DATA: &str = concat!(env!("CARGO_PKG_VERSION"), "/", env!("PACKAGE_COMPILE_TIME"));
 static VERSION_UPDATE: &str = "0.11.15";
 type BlockHandle = JoinHandle<Result<(), PollSendError<KaspadMessage>>>;
 

@@ -4,7 +4,7 @@ use log::LevelFilter;
 use crate::Error;
 
 #[derive(Parser, Debug)]
-#[clap(name = "kaspa-miner", about = "A Kaspa high performance CPU miner")]
+#[clap(name = "kaspa-miner", about = "A Kaspa high performance CPU miner", term_width = 0)]
 pub struct Opt {
     #[clap(short, long, help = "Enable debug logging level")]
     pub debug: bool,
@@ -25,7 +25,8 @@ pub struct Opt {
     pub num_threads: Option<u16>,
     #[clap(
         long = "mine-when-not-synced",
-        help = "Mine even when kaspad says it is not synced, only useful when passing `--allow-submit-block-when-not-synced` to kaspad  [default: false]"
+        help = "Mine even when kaspad says it is not synced",
+        long_help = "Mine even when kaspad says it is not synced, only useful when passing `--allow-submit-block-when-not-synced` to kaspad  [default: false]",
     )]
     pub mine_when_not_synced: bool,
 

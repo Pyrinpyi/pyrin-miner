@@ -13,7 +13,8 @@ pub struct CudaOpt {
     pub cuda_disable: bool,
     #[clap(
         long = "cuda-no-blocking-sync",
-        help = "Actively wait for GPU result. Increases CPU usage, but removes delays that might result in red blocks. Can have lower workload."
+        help = "Actively wait for result. Higher CPU usage, but less red blocks. Can have lower workload.",
+        long_help = "Actively wait for GPU result. Increases CPU usage, but removes delays that might result in red blocks. Can have lower workload."
     )]
     pub cuda_no_blocking_sync: bool,
     #[clap(long = "cuda-lock-mem-clocks", use_delimiter = true, help = "Lock mem clocks eg: ,810, [default: 0]")]

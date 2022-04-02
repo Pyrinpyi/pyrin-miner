@@ -114,7 +114,7 @@ async fn main() -> Result<(), Error> {
     path.pop(); // Getting the parent directory
     let plugins = filter_plugins(path.to_str().unwrap_or("."));
     let (app, mut plugin_manager): (App, PluginManager) =
-        kaspa_miner::load_plugins(Opt::into_app().term_width(120), &plugins)?;
+        kaspa_miner::load_plugins(Opt::into_app(), &plugins)?;
 
     let matches = app.get_matches();
 

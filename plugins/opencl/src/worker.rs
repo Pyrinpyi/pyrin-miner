@@ -200,14 +200,14 @@ impl OpenCLGPUWorker {
                 let device_name = device.name().unwrap_or_else(|_| "Unknown".into()).to_lowercase();
                 info!("{}: Looking for binary for {}", name, device_name);
                 match device_name.as_str() {
-                    "ellesmere" => Program::create_and_build_from_binary(
+                    /*"ellesmere" => Program::create_and_build_from_binary(
                         &context,
                         &[include_bytes!("../resources/bin/ellesmere_kaspa-opencl.bin")],
                         "",
                     )
                     .unwrap_or_else(|e| {
                         panic!("{}::Program::create_and_build_from_binary failed: {}", name, String::from(e))
-                    }),
+                    }),*/
                     "gfx906" => Program::create_and_build_from_binary(
                         &context,
                         &[include_bytes!("../resources/bin/gfx906_kaspa-opencl.bin")],

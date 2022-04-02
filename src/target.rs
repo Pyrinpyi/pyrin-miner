@@ -59,11 +59,21 @@ impl Uint256 {
         out.chunks_exact_mut(8).zip(self.0).for_each(|(bytes, word)| bytes.copy_from_slice(&word.to_le_bytes()));
         out
     }
+
+    #[inline(always)]
+    pub fn to_be_bytes(self) -> [u8; 32] {
+        let mut out = [0u8; 32];
+        // This should optimize to basically a transmute.
+        out.chunks_exact_mut(8)
+            .zip(self.0.iter().rev())
+            .for_each(|(bytes, word)| bytes.copy_from_slice(&word.to_be_bytes()));
+        out
+    }
 }
 
 impl fmt::LowerHex for Uint256 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.to_le_bytes().iter().rev().try_for_each(|&c| write!(f, "{:02x}", c))
+        self.to_le_bytes().iter().try_for_each(|&c| write!(f, "{:02x}", c))
     }
 }
 

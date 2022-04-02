@@ -1,6 +1,5 @@
 use clap::Parser;
 use log::LevelFilter;
-use std::{net::IpAddr, str::FromStr};
 
 use crate::Error;
 
@@ -70,7 +69,6 @@ impl Opt {
         }
 
         if !self.kaspad_address.contains("://") {
-            IpAddr::from_str(&self.kaspad_address)?;
             let port = self.port();
             self.kaspad_address = format!("grpc://{}:{}", self.kaspad_address, port);
         }

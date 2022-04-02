@@ -659,6 +659,7 @@ dependencies = [
  "env_logger",
  "futures",
  "futures-util",
+ "hex",
  "keccak",
  "kernel32-sys",
  "libloading",

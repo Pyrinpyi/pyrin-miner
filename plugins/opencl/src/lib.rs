@@ -45,7 +45,7 @@ impl Plugin for OpenCLPlugin {
     }
 
     //noinspection RsTypeCheck
-    fn process_option(&mut self, matches: &ArgMatches) -> Result<(), kaspa_miner::Error> {
+    fn process_option(&mut self, matches: &ArgMatches) -> Result<usize, kaspa_miner::Error> {
         let opts: OpenCLOpt = OpenCLOpt::from_arg_matches(matches)?;
 
         self._enabled = opts.opencl_enable;
@@ -77,38 +77,39 @@ impl Plugin for OpenCLPlugin {
             }
             None => &platforms[0],
         };
-        info!(
-            "Chose to mine on {}: {}.",
-            &_platform.vendor().unwrap_or_else(|_| "Unk".into()),
-            &_platform.name().unwrap_or_else(|_| "Unk".into())
-        );
+        if self._enabled {
+            info!(
+                "Chose to mine on {}: {}.",
+                &_platform.vendor().unwrap_or_else(|_| "Unk".into()),
+                &_platform.name().unwrap_or_else(|_| "Unk".into())
+            );
 
-        let device_ids = _platform.get_devices(CL_DEVICE_TYPE_ALL).unwrap();
-        let gpus = match opts.opencl_device {
-            Some(dev) => {
-                self._enabled = true;
-                dev.iter().map(|d| device_ids[*d as usize]).collect::<Vec<cl_device_id>>()
-            }
-            None => device_ids,
-        };
+            let device_ids = _platform.get_devices(CL_DEVICE_TYPE_ALL).unwrap();
+            let gpus = match opts.opencl_device {
+                Some(dev) => {
+                    self._enabled = true;
+                    dev.iter().map(|d| device_ids[*d as usize]).collect::<Vec<cl_device_id>>()
+                }
+                None => device_ids,
+            };
 
-        self.specs = (0..gpus.len())
-            .map(|i| OpenCLWorkerSpec {
-                _platform: *_platform,
-                device_id: Device::new(gpus[i]),
-                workload: match &opts.opencl_workload {
-                    Some(workload) if i < workload.len() => workload[i],
-                    Some(workload) if !workload.is_empty() => *workload.last().unwrap(),
-                    _ => DEFAULT_WORKLOAD_SCALE,
-                },
-                is_absolute: opts.opencl_workload_absolute,
-                experimental_amd: opts.experimental_amd,
-                use_amd_binary: !opts.opencl_no_amd_binary,
-                random: opts.nonce_gen,
-            })
-            .collect();
-
-        Ok(())
+            self.specs = (0..gpus.len())
+                .map(|i| OpenCLWorkerSpec {
+                    _platform: *_platform,
+                    device_id: Device::new(gpus[i]),
+                    workload: match &opts.opencl_workload {
+                        Some(workload) if i < workload.len() => workload[i],
+                        Some(workload) if !workload.is_empty() => *workload.last().unwrap(),
+                        _ => DEFAULT_WORKLOAD_SCALE,
+                    },
+                    is_absolute: opts.opencl_workload_absolute,
+                    experimental_amd: opts.experimental_amd,
+                    use_amd_binary: !opts.opencl_no_amd_binary,
+                    random: opts.nonce_gen,
+                })
+                .collect();
+        }
+        Ok(self.specs.len())
     }
 }
 

@@ -70,8 +70,12 @@ impl Opt {
         }
 
         if !self.kaspad_address.contains("://") {
-            let port = self.port();
-            self.kaspad_address = format!("grpc://{}:{}", self.kaspad_address, port);
+            let port_str = self.port().to_string();
+            let (kaspad, port) = match self.kaspad_address.contains(':') {
+                true => self.kaspad_address.split_once(':').expect("We checked for `:`"),
+                false => (self.kaspad_address.as_str(), port_str.as_str()),
+            };
+            self.kaspad_address = format!("grpc://{}:{}", kaspad, port);
         }
         log::info!("kaspad address: {}", self.kaspad_address);
 

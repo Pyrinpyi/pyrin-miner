@@ -65,13 +65,17 @@ impl PluginManager {
         Ok(specs)
     }
 
-    pub fn process_options(&mut self, matchs: &ArgMatches) -> Result<(), Error> {
+    /**
+    Process the options for a plugin, and reports how many workers are available
+    */
+    pub fn process_options(&mut self, matchs: &ArgMatches) -> Result<usize, Error> {
+        let mut count = 0usize;
         self.plugins.iter_mut().for_each(|plugin| {
-            plugin
+            count += plugin
                 .process_option(matchs)
                 .unwrap_or_else(|_| panic!("Could not process option for plugin {}", plugin.name()))
         });
-        Ok(())
+        Ok(count)
     }
 
     pub fn has_specs(&self) -> bool {
@@ -83,7 +87,7 @@ pub trait Plugin: Any + Send + Sync {
     fn name(&self) -> &'static str;
     fn enabled(&self) -> bool;
     fn get_worker_specs(&self) -> Vec<Box<dyn WorkerSpec>>;
-    fn process_option(&mut self, matchs: &ArgMatches) -> Result<(), Error>;
+    fn process_option(&mut self, matchs: &ArgMatches) -> Result<usize, Error>;
 }
 
 pub trait WorkerSpec: Any + Send + Sync {
@@ -116,7 +120,7 @@ pub fn load_plugins<'help>(
     for path in paths {
         app = unsafe {
             factory.load_single_plugin(app, path.as_str()).unwrap_or_else(|(app, e)| {
-                eprintln!("Failed loading plugin {}: {}", path, e);
+                eprintln!("WARNING: Failed loading plugin {} (ignore if you do not intend to use): {}", path, e);
                 app
             })
         };

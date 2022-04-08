@@ -1,8 +1,9 @@
 use crate::cli::NonceGenEnum;
 use crate::Error;
+use include_dir::{include_dir, Dir};
 use kaspa_miner::xoshiro256starstar::Xoshiro256StarStar;
 use kaspa_miner::Worker;
-use log::info;
+use log::{info, warn};
 use opencl3::command_queue::{CommandQueue, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE};
 use opencl3::context::Context;
 use opencl3::device::Device;
@@ -18,6 +19,7 @@ use std::ffi::c_void;
 use std::ptr;
 use std::sync::Arc;
 
+static BINARY_DIR: Dir = include_dir!("./plugins/opencl/resources/bin/");
 static PROGRAM_SOURCE: &str = include_str!("../resources/kaspa-opencl.cl");
 
 pub struct OpenCLGPUWorker {
@@ -197,70 +199,21 @@ impl OpenCLGPUWorker {
 
         let program = match use_binary {
             true => {
-                let device_name = device.name().unwrap_or_else(|_| "Unknown".into()).to_lowercase();
+                let mut device_name = device.name().unwrap_or_else(|_| "Unknown".into()).to_lowercase();
+                if device_name.contains(':') {
+                    device_name = device_name.split_once(':').expect("We checked for `:`").0.to_string();
+                }
                 info!("{}: Looking for binary for {}", name, device_name);
-                match device_name.as_str() {
-                    /*"ellesmere" => Program::create_and_build_from_binary(
-                        &context,
-                        &[include_bytes!("../resources/bin/ellesmere_kaspa-opencl.bin")],
-                        "",
-                    )
-                    .unwrap_or_else(|e| {
-                        panic!("{}::Program::create_and_build_from_binary failed: {}", name, String::from(e))
-                    }),*/
-                    "gfx906" => Program::create_and_build_from_binary(
-                        &context,
-                        &[include_bytes!("../resources/bin/gfx906_kaspa-opencl.bin")],
-                        "",
-                    )
-                    .unwrap_or_else(|_| panic!("{}::Program::create_and_build_from_binary failed", name)),
-                    "gfx908" => Program::create_and_build_from_binary(
-                        &context,
-                        &[include_bytes!("../resources/bin/gfx908_kaspa-opencl.bin")],
-                        "",
-                    )
-                    .unwrap_or_else(|_| panic!("{}::Program::create_and_build_from_binary failed", name)),
-                    "gfx1010" => Program::create_and_build_from_binary(
-                        &context,
-                        &[include_bytes!("../resources/bin/gfx1010_kaspa-opencl.bin")],
-                        "",
-                    )
-                    .unwrap_or_else(|_| panic!("{}::Program::create_and_build_from_binary failed", name)),
-                    "gfx1011" => Program::create_and_build_from_binary(
-                        &context,
-                        &[include_bytes!("../resources/bin/gfx1011_kaspa-opencl.bin")],
-                        "",
-                    )
-                    .unwrap_or_else(|_| panic!("{}::Program::create_and_build_from_binary failed", name)),
-                    "gfx1012" => Program::create_and_build_from_binary(
-                        &context,
-                        &[include_bytes!("../resources/bin/gfx1012_kaspa-opencl.bin")],
-                        "",
-                    )
-                    .unwrap_or_else(|_| panic!("{}::Program::create_and_build_from_binary failed", name)),
-                    "gfx1030" => Program::create_and_build_from_binary(
-                        &context,
-                        &[include_bytes!("../resources/bin/gfx1030_kaspa-opencl.bin")],
-                        "",
-                    )
-                    .unwrap_or_else(|_| panic!("{}::Program::create_and_build_from_binary failed", name)),
-                    "gfx1031" => Program::create_and_build_from_binary(
-                        &context,
-                        &[include_bytes!("../resources/bin/gfx1031_kaspa-opencl.bin")],
-                        "",
-                    )
-                    .unwrap_or_else(|_| panic!("{}::Program::create_and_build_from_binary failed", name)),
-                    "gfx1032" => Program::create_and_build_from_binary(
-                        &context,
-                        &[include_bytes!("../resources/bin/gfx1032_kaspa-opencl.bin")],
-                        "",
-                    )
-                    .unwrap_or_else(|e| panic!("{}::Program::create_and_build_from_binary failed: {}", name, e)),
-                    other => {
-                        panic!(
-                            "{}: Found device {} without prebuilt binary. Trying to run without --opencl-amd-binary.",
-                            name, other
-                        );
+                match BINARY_DIR.get_file(format!("{}_kaspa-opencl.bin", device_name)) {
+                    Some(binary) => {
+                        Program::create_and_build_from_binary(&context, &[binary.contents()], "").unwrap_or_else(|e|{
+                            warn!("{}::Program::create_and_build_from_source failed: {}. Reverting to compiling from source", name, e);
+                            from_source(&context, &device, options).unwrap_or_else(|e| panic!("{}::Program::create_and_build_from_binary failed: {}", name, e))
+                        })
+                    },
+                    None => {
+                        warn!("Binary file not found for {}. Reverting to compiling from source.", device_name);
+                        from_source(&context, &device, options).unwrap_or_else(|e| panic!("{}::Program::create_and_build_from_binary failed: {}", name, e))
                     }
                 }
             }

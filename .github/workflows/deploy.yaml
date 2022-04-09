@@ -46,8 +46,8 @@ jobs:
         uses: Jimver/cuda-toolkit@v0.2.5
         with:
           cuda: '11.5.1'
-          #method: 'local'
-          #sub-packages: '["nvcc", "cudart"]'
+          method: 'network'
+          sub-packages: '["nvcc", "cudart"]'
 
       - name: Build on Linux GNU
         if: matrix.os == 'ubuntu-18.04'

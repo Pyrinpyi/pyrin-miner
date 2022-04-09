@@ -25,6 +25,7 @@ static PROGRAM_SOURCE: &str = include_str!("../resources/kaspa-opencl.cl");
 pub struct OpenCLGPUWorker {
     context: Arc<Context>,
     random: NonceGenEnum,
+    local_size: usize,
     workload: usize,
 
     heavy_hash: Kernel,
@@ -101,6 +102,7 @@ impl Worker for OpenCLGPUWorker {
             NonceGenEnum::Xoshiro => 1,
         };
         let kernel_event = ExecuteKernel::new(&self.heavy_hash)
+            .set_arg(&(self.local_size as u64))
             .set_arg(&nonce_mask)
             .set_arg(&nonce_fixed)
             .set_arg(&self.hash_header)
@@ -158,7 +160,7 @@ impl OpenCLGPUWorker {
         workload: f32,
         is_absolute: bool,
         experimental_amd: bool,
-        use_binary: bool,
+        mut use_binary: bool,
         random: &NonceGenEnum,
     ) -> Result<Self, Error> {
         let name =
@@ -172,11 +174,11 @@ impl OpenCLGPUWorker {
             device.extensions().unwrap_or_else(|_| "NA".into())
         );
 
+        let local_size = device.max_work_group_size().map_err(|e| e.to_string())?;
         let chosen_workload = match is_absolute {
             true => workload as usize,
             false => {
-                let max_work_group_size = (device.max_work_group_size().map_err(|e| e.to_string())?
-                    * (device.max_compute_units().map_err(|e| e.to_string())? as usize))
+                let max_work_group_size = (local_size * (device.max_compute_units().map_err(|e| e.to_string())? as usize))
                     as f32;
                 (workload * max_work_group_size) as usize
             }
@@ -194,7 +196,7 @@ impl OpenCLGPUWorker {
 
         let experimental_amd_use = !matches!(
             device.name().unwrap_or_else(|_| "Unknown".into()).to_lowercase().as_str(),
-            "tahiti" | "ellesmere" | "gfx1010"
+            "tahiti" | "ellesmere" | "gfx1010" | "gfx906" | "gfx908"
         );
 
         let program = match use_binary {
@@ -207,12 +209,15 @@ impl OpenCLGPUWorker {
                 match BINARY_DIR.get_file(format!("{}_kaspa-opencl.bin", device_name)) {
                     Some(binary) => {
                         Program::create_and_build_from_binary(&context, &[binary.contents()], "").unwrap_or_else(|e|{
+                        //Program::create_and_build_from_binary(&context, &[include_bytes!("../resources/kaspa-opencl-linked.bc")], "").unwrap_or_else(|e|{
                             warn!("{}::Program::create_and_build_from_source failed: {}. Reverting to compiling from source", name, e);
+                            use_binary = false;
                             from_source(&context, &device, options).unwrap_or_else(|e| panic!("{}::Program::create_and_build_from_binary failed: {}", name, e))
                         })
                     },
                     None => {
                         warn!("Binary file not found for {}. Reverting to compiling from source.", device_name);
+                        use_binary = false;
                         from_source(&context, &device, options).unwrap_or_else(|e| panic!("{}::Program::create_and_build_from_binary failed: {}", name, e))
                     }
                 }
@@ -296,6 +301,7 @@ impl OpenCLGPUWorker {
         };
         Ok(Self {
             context,
+            local_size,
             workload: chosen_workload,
             random: *random,
             heavy_hash,

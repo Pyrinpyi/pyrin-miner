@@ -1,4 +1,6 @@
 // Catering for different flavors
+#pragma OPENCL EXTENSION cl_amd_media_ops : enable
+
 #if __OPENCL_VERSION__ <= CL_VERSION_1_1
 #define STATIC
 #else
@@ -263,12 +265,12 @@ void STATIC inline _amul4bit(__constant uint32_t packed_vec1[32], uint32_t packe
     }
     *ret = res;
 }
-#elif defined(__gfx906__) || defined(__gfx908__) || defined(__gfx1011__) || defined(__gfx1012__) || defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1032__)
+#elif (defined(PAL) && (defined(__gfx906__) || defined(__gfx908__))) || defined(__gfx1011__) || defined(__gfx1012__) || defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1032__) || defined(__gfx1034__)
 #define amul4bit(X,Y,Z) _amul4bit((constant uint32_t*)(X), (private uint32_t*)(Y), (uint32_t *)(Z))
 void STATIC inline _amul4bit(__constant uint32_t packed_vec1[32], uint32_t packed_vec2[32], uint32_t *ret) {
     // We assume each 32 bits have four values: A0 B0 C0 D0
     uint32_t res = 0;
-#if __FORCE_AMD_V_DOT8_U32_U4__ == 1
+#if defined(__FORCE_AMD_V_DOT8_U32_U4__)
     for (int i=0; i<8; i++) {
         __asm__("v_dot8_u32_u4" " %0, %1, %2, %3;": "=v" (res): "r" (packed_vec1[i]), "r" (packed_vec2[i]), "v" (res));
     }
@@ -311,6 +313,7 @@ void STATIC inline _amul4bit(__constant uchar4 packed_vec1[32], uchar4 packed_ve
 #define SWAP4( x ) as_uint( as_uchar4( x ).wzyx )
 
 kernel void heavy_hash(
+    const ulong local_size,
     const ulong nonce_mask,
     const ulong nonce_fixed,
     __constant const ulong hash_header[9],
@@ -321,7 +324,11 @@ kernel void heavy_hash(
     volatile global uint64_t *final_nonce,
     volatile global ulong4 *final_hash
 ) {
+    #if defined(PAL)
+    int nonceId = get_group_id(0)*local_size + get_local_id(0);
+    #else
     int nonceId = get_global_id(0);
+    #endif
 
     #ifndef cl_khr_int64_base_atomics
     if (nonceId == 0)
@@ -350,7 +357,7 @@ kernel void heavy_hash(
     buffer[9] = nonce;
 
     Hash hash_, hash2_;
-    hash(powP, buffer, &hash_.hash);
+    hash(powP, (const ulong*)buffer, &hash_.hash);
     #if __FORCE_AMD_V_DOT8_U32_U4__ == 1
     #else
     private uchar hash_part[64];
@@ -387,7 +394,7 @@ kernel void heavy_hash(
     #pragma unroll
     for(int i=4; i<10; i++) buffer[i] = 0;
 
-    hash(heavyP, buffer, &hash_.hash);
+    hash(heavyP, (const ulong*)buffer, &hash_.hash);
 
     if (LT_U256(hash_.hash, target)){
         //printf("%lu: %lu < %lu: %d %d\n", nonce, ((uint64_t *)hash_)[3], target[3], ((uint64_t *)hash_)[3] < target[3], LT_U256((uint64_t *)hash_, target));

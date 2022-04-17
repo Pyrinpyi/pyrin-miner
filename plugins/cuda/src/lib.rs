@@ -149,7 +149,10 @@ struct CudaWorkerSpec {
 
 impl WorkerSpec for CudaWorkerSpec {
     fn build(&self) -> Box<dyn Worker> {
-        Box::new(CudaGPUWorker::new(self.device_id, self.workload, self.is_absolute, self.blocking_sync, self.random).unwrap())
+        Box::new(
+            CudaGPUWorker::new(self.device_id, self.workload, self.is_absolute, self.blocking_sync, self.random)
+                .unwrap(),
+        )
     }
 }
 

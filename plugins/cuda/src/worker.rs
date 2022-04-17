@@ -91,7 +91,7 @@ impl<'gpu> Worker for CudaGPUWorker<'gpu> {
             NonceGenEnum::Lean => {
                 self.rand_state.copy_from(&[rand::thread_rng().next_u64()]).unwrap();
                 0
-            },
+            }
             NonceGenEnum::Xoshiro => 1,
         };
 
@@ -130,7 +130,13 @@ impl<'gpu> Worker for CudaGPUWorker<'gpu> {
 }
 
 impl<'gpu> CudaGPUWorker<'gpu> {
-    pub fn new(device_id: u32, workload: f32, is_absolute: bool, blocking_sync: bool, random: NonceGenEnum) -> Result<Self, Error> {
+    pub fn new(
+        device_id: u32,
+        workload: f32,
+        is_absolute: bool,
+        blocking_sync: bool,
+        random: NonceGenEnum,
+    ) -> Result<Self, Error> {
         info!("Starting a CUDA worker");
         let sync_flag = match blocking_sync {
             true => ContextFlags::SCHED_BLOCKING_SYNC,
@@ -192,9 +198,9 @@ impl<'gpu> CudaGPUWorker<'gpu> {
 
         let final_nonce_buff = vec![0u64; 1].as_slice().as_dbuf()?;
 
-        let rand_state: DeviceBuffer<u64>=  match random {
+        let rand_state: DeviceBuffer<u64> = match random {
             NonceGenEnum::Xoshiro => {
-                let mut buffer = DeviceBuffer::<u64>::zeroed(4*chosen_workload).unwrap();
+                let mut buffer = DeviceBuffer::<u64>::zeroed(4 * chosen_workload).unwrap();
                 info!("GPU #{} is generating initial seed. This may take some time.", device_id);
                 let mut seed = [1u64; 4];
                 seed.try_fill(&mut rand::thread_rng())?;
@@ -204,11 +210,11 @@ impl<'gpu> CudaGPUWorker<'gpu> {
                         .take(chosen_workload)
                         .flat_map(|x| x)
                         .collect::<Vec<u64>>()
-                        .as_slice()
+                        .as_slice(),
                 )?;
                 info!("GPU #{} initialized", device_id);
                 buffer
-            },
+            }
             NonceGenEnum::Lean => {
                 let mut buffer = DeviceBuffer::<u64>::zeroed(1).unwrap();
                 let seed = rand::thread_rng().next_u64();

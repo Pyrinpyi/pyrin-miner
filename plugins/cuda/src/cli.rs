@@ -50,9 +50,9 @@ pub struct CudaOpt {
     )]
     pub cuda_no_blocking_sync: bool,
     #[clap(
-    long = "nonce-gen",
-    help = "The random method used to generate nonces. Options: (i) xoshiro - each thread in GPU will have its own random state, creating a (pseudo-)independent xoshiro sequence (ii) lean - each GPU will have a single random nonce, and each GPU thread will work on nonce + thread id.",
-    default_value = "xoshiro"
+        long = "nonce-gen",
+        help = "The random method used to generate nonces. Options: (i) xoshiro - each thread in GPU will have its own random state, creating a (pseudo-)independent xoshiro sequence (ii) lean - each GPU will have a single random nonce, and each GPU thread will work on nonce + thread id.",
+        default_value = "xoshiro"
     )]
     pub nonce_gen: NonceGenEnum,
 

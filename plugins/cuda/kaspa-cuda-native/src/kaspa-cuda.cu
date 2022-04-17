@@ -18,6 +18,10 @@ typedef union _uint256_t {
 #define QUARTER_MATRIX_SIZE 16
 #define HASH_HEADER_SIZE 72
 
+#define RANDOM_LEAN 0
+#define RANDOM_XOSHIRO 1
+
+#define SWAP4( x ) (__brev(x))
 #define LT_U256(X,Y) (X.number[3] != Y.number[3] ? X.number[3] < Y.number[3] : X.number[2] != Y.number[2] ? X.number[2] < Y.number[2] : X.number[1] != Y.number[1] ? X.number[1] < Y.number[1] : X.number[0] < Y.number[0])
 
 __constant__ uint8_t matrix[MATRIX_SIZE][MATRIX_SIZE];
@@ -52,12 +56,22 @@ __device__ __inline__ void amul4bit(uint32_t packed_vec1[32], uint32_t packed_ve
 extern "C" {
 
 
-    __global__ void heavy_hash(const uint64_t nonce_mask, const uint64_t nonce_fixed, const uint64_t nonces_len, ulonglong4* states, uint64_t *final_nonce) {
+    __global__ void heavy_hash(const uint64_t nonce_mask, const uint64_t nonce_fixed, const uint64_t nonces_len, uint8_t random_type, void* states, uint64_t *final_nonce) {
         // assuming header_len is 72
         int nonceId = threadIdx.x + blockIdx.x*blockDim.x;
         if (nonceId < nonces_len) {
             if (nonceId == 0) *final_nonce = 0;
-            uint64_t nonce = (xoshiro256_next(states + nonceId) & nonce_mask) | nonce_fixed;
+            uint64_t nonce;
+            switch (random_type) {
+                case RANDOM_LEAN:
+                    nonce = ((uint64_t *)states)[0] ^ ((uint64_t)SWAP4(nonceId) << 32);
+                    break;
+                case RANDOM_XOSHIRO:
+                default:
+                    nonce = xoshiro256_next(((ulonglong4 *)states) + nonceId);
+                    break;
+            }
+            nonce = (nonce & nonce_mask) | nonce_fixed;
             // header
             uint8_t input[80];
             memcpy(input, hash_header, HASH_HEADER_SIZE);

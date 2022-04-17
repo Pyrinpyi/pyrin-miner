@@ -1,4 +1,4 @@
-use crate::Error;
+use crate::{Error, NonceGenEnum};
 use cust::context::CurrentContext;
 use cust::device::DeviceAttribute;
 use cust::function::Function;
@@ -7,7 +7,7 @@ use cust::prelude::*;
 use kaspa_miner::xoshiro256starstar::Xoshiro256StarStar;
 use kaspa_miner::Worker;
 use log::{error, info};
-use rand::Fill;
+use rand::{Fill, RngCore};
 use std::ffi::CString;
 use std::sync::{Arc, Weak};
 
@@ -55,12 +55,14 @@ pub struct CudaGPUWorker<'gpu> {
     stream: Stream,
     _module: Arc<Module>,
 
-    rand_state: DeviceBuffer<[u64; 4]>,
+    rand_state: DeviceBuffer<u64>,
     final_nonce_buff: DeviceBuffer<u64>,
 
     device_id: u32,
     pub workload: usize,
     _context: Context,
+
+    random: NonceGenEnum,
 }
 
 impl<'gpu> Worker for CudaGPUWorker<'gpu> {
@@ -85,6 +87,13 @@ impl<'gpu> Worker for CudaGPUWorker<'gpu> {
     fn calculate_hash(&mut self, _nonces: Option<&Vec<u64>>, nonce_mask: u64, nonce_fixed: u64) {
         let func = &self.heavy_hash_kernel.func;
         let stream = &self.stream;
+        let random: u8 = match self.random {
+            NonceGenEnum::Lean => {
+                self.rand_state.copy_from(&[rand::thread_rng().next_u64()]).unwrap();
+                0
+            },
+            NonceGenEnum::Xoshiro => 1,
+        };
 
         unsafe {
             launch!(
@@ -93,7 +102,8 @@ impl<'gpu> Worker for CudaGPUWorker<'gpu> {
                     0, stream
                 >>>(
                     nonce_mask, nonce_fixed,
-                    self.rand_state.len(),
+                    self.workload,
+                    random,
                     self.rand_state.as_device_ptr(),
                     self.final_nonce_buff.as_device_ptr()
                 )
@@ -120,7 +130,7 @@ impl<'gpu> Worker for CudaGPUWorker<'gpu> {
 }
 
 impl<'gpu> CudaGPUWorker<'gpu> {
-    pub fn new(device_id: u32, workload: f32, is_absolute: bool, blocking_sync: bool) -> Result<Self, Error> {
+    pub fn new(device_id: u32, workload: f32, is_absolute: bool, blocking_sync: bool, random: NonceGenEnum) -> Result<Self, Error> {
         info!("Starting a CUDA worker");
         let sync_flag = match blocking_sync {
             true => ContextFlags::SCHED_BLOCKING_SYNC,
@@ -180,21 +190,32 @@ impl<'gpu> CudaGPUWorker<'gpu> {
         info!("GPU #{} Chosen workload: {}", device_id, chosen_workload);
         heavy_hash_kernel.set_workload(chosen_workload as u32);
 
-        let mut rand_state = DeviceBuffer::<[u64; 4]>::zeroed(chosen_workload).unwrap();
-
         let final_nonce_buff = vec![0u64; 1].as_slice().as_dbuf()?;
 
-        info!("GPU #{} is generating initial seed. This may take some time.", device_id);
-        let mut seed = [1u64; 4];
-        seed.try_fill(&mut rand::thread_rng())?;
-        rand_state.copy_from(
-            Xoshiro256StarStar::new(&seed)
-                .iter_jump_state()
-                .take(chosen_workload)
-                .collect::<Vec<[u64; 4]>>()
-                .as_slice(),
-        )?;
-        info!("GPU #{} initialized", device_id);
+        let rand_state: DeviceBuffer<u64>=  match random {
+            NonceGenEnum::Xoshiro => {
+                let mut buffer = DeviceBuffer::<u64>::zeroed(4*chosen_workload).unwrap();
+                info!("GPU #{} is generating initial seed. This may take some time.", device_id);
+                let mut seed = [1u64; 4];
+                seed.try_fill(&mut rand::thread_rng())?;
+                buffer.copy_from(
+                    Xoshiro256StarStar::new(&seed)
+                        .iter_jump_state()
+                        .take(chosen_workload)
+                        .flat_map(|x| x)
+                        .collect::<Vec<u64>>()
+                        .as_slice()
+                )?;
+                info!("GPU #{} initialized", device_id);
+                buffer
+            },
+            NonceGenEnum::Lean => {
+                let mut buffer = DeviceBuffer::<u64>::zeroed(1).unwrap();
+                let seed = rand::thread_rng().next_u64();
+                buffer.copy_from(&[seed])?;
+                buffer
+            }
+        };
         Ok(Self {
             device_id,
             _context,
@@ -204,6 +225,7 @@ impl<'gpu> CudaGPUWorker<'gpu> {
             rand_state,
             final_nonce_buff,
             heavy_hash_kernel,
+            random,
         })
     }
 }

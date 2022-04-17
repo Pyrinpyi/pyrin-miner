@@ -1,3 +1,24 @@
+use crate::Error;
+use std::str::FromStr;
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum NonceGenEnum {
+    Lean,
+    Xoshiro,
+}
+
+impl FromStr for NonceGenEnum {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "lean" => Ok(Self::Lean),
+            "xoshiro" => Ok(Self::Xoshiro),
+            _ => Err("Unknown string".into()),
+        }
+    }
+}
+
 #[cfg(feature = "overclock")]
 #[derive(clap::Args, Debug, Default)]
 pub struct OverClock {
@@ -28,6 +49,12 @@ pub struct CudaOpt {
         long_help = "Actively wait for GPU result. Increases CPU usage, but removes delays that might result in red blocks. Can have lower workload."
     )]
     pub cuda_no_blocking_sync: bool,
+    #[clap(
+    long = "nonce-gen",
+    help = "The random method used to generate nonces. Options: (i) xoshiro - each thread in GPU will have its own random state, creating a (pseudo-)independent xoshiro sequence (ii) lean - each GPU will have a single random nonce, and each GPU thread will work on nonce + thread id.",
+    default_value = "xoshiro"
+    )]
+    pub nonce_gen: NonceGenEnum,
 
     #[cfg(feature = "overclock")]
     #[clap(flatten)]

@@ -96,6 +96,7 @@ pub trait WorkerSpec: Any + Send + Sync {
     device_id: u32,
     workload: f32,
     is_absolute: bool*/
+    fn id(&self) -> String;
     fn build(&self) -> Box<dyn Worker>;
 }
 

@@ -340,7 +340,7 @@ kernel void heavy_hash(
     switch (random_type){
       case RANDOM_TYPE_LEAN:
         // nonce = ((uint64_t *)random_state)[0] + nonceId;
-        nonce = (((__global uint64_t *)random_state)[0]) ^ ((ulong)SWAP4(nonceId) << 32);
+        nonce = (((__global uint64_t *)random_state)[0]) ^ nonceId;
         break;
       case RANDOM_TYPE_XOSHIRO:
       default:

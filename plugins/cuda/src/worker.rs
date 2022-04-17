@@ -200,6 +200,7 @@ impl<'gpu> CudaGPUWorker<'gpu> {
 
         let rand_state: DeviceBuffer<u64> = match random {
             NonceGenEnum::Xoshiro => {
+                info!("Using xoshiro for nonce-generation");
                 let mut buffer = DeviceBuffer::<u64>::zeroed(4 * chosen_workload).unwrap();
                 info!("GPU #{} is generating initial seed. This may take some time.", device_id);
                 let mut seed = [1u64; 4];
@@ -208,7 +209,7 @@ impl<'gpu> CudaGPUWorker<'gpu> {
                     Xoshiro256StarStar::new(&seed)
                         .iter_jump_state()
                         .take(chosen_workload)
-                        .flat_map(|x| x)
+                        .flatten()
                         .collect::<Vec<u64>>()
                         .as_slice(),
                 )?;
@@ -216,6 +217,7 @@ impl<'gpu> CudaGPUWorker<'gpu> {
                 buffer
             }
             NonceGenEnum::Lean => {
+                info!("Using lean nonce-generation");
                 let mut buffer = DeviceBuffer::<u64>::zeroed(1).unwrap();
                 let seed = rand::thread_rng().next_u64();
                 buffer.copy_from(&[seed])?;

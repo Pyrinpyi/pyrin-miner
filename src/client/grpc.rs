@@ -141,7 +141,9 @@ impl KaspadHandler {
                     miner.process_block(Some(FullBlock(Box::new(b)))).await?
                 }
                 (_, false, None) => miner.process_block(None).await?,
-                (_, _, Some(e)) => warn!("GetTemplate returned with an error: {:?}", e),
+                (_, _, Some(e)) => {
+                    return Err(format!("GetTemplate returned with an error: {:?}", e).into());
+                }
                 (None, true, None) => error!("No block and No Error!"),
             },
             Payload::SubmitBlockResponse(res) => match res.error {

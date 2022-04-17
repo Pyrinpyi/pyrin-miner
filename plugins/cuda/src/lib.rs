@@ -148,6 +148,11 @@ struct CudaWorkerSpec {
 }
 
 impl WorkerSpec for CudaWorkerSpec {
+    fn id(&self) -> String {
+        let device = Device::get_device(self.device_id).unwrap();
+        format!("#{} ({})", self.device_id, device.name().unwrap())
+    }
+
     fn build(&self) -> Box<dyn Worker> {
         Box::new(
             CudaGPUWorker::new(self.device_id, self.workload, self.is_absolute, self.blocking_sync, self.random)

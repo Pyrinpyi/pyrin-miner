@@ -251,6 +251,7 @@ impl OpenCLGPUWorker {
 
         let random_state = match random {
             NonceGenEnum::Xoshiro => {
+                info!("Using xoshiro for nonce-generation");
                 let random_state =
                     Buffer::<cl_ulong>::create(context_ref, CL_MEM_READ_WRITE, 4 * chosen_workload, ptr::null_mut())
                         .expect("Buffer allocation failed");
@@ -289,6 +290,7 @@ impl OpenCLGPUWorker {
                 random_state
             }
             NonceGenEnum::Lean => {
+                info!("Using lean nonce-generation");
                 let mut random_state = Buffer::<cl_ulong>::create(context_ref, CL_MEM_READ_WRITE, 1, ptr::null_mut())
                     .expect("Buffer allocation failed");
                 queue

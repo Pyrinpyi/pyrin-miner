@@ -125,6 +125,12 @@ struct OpenCLWorkerSpec {
 }
 
 impl WorkerSpec for OpenCLWorkerSpec {
+    fn id(&self) -> String {
+        self.device_id
+            .board_name_amd()
+            .unwrap_or_else(|_| self.device_id.name().unwrap_or_else(|_| "Unknown Device".into()))
+    }
+
     fn build(&self) -> Box<dyn Worker> {
         Box::new(
             OpenCLGPUWorker::new(

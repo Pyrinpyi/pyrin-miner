@@ -178,8 +178,8 @@ impl OpenCLGPUWorker {
         let chosen_workload = match is_absolute {
             true => workload as usize,
             false => {
-                let max_work_group_size = (local_size * (device.max_compute_units().map_err(|e| e.to_string())? as usize))
-                    as f32;
+                let max_work_group_size =
+                    (local_size * (device.max_compute_units().map_err(|e| e.to_string())? as usize)) as f32;
                 (workload * max_work_group_size) as usize
             }
         };
@@ -214,11 +214,12 @@ impl OpenCLGPUWorker {
                             use_binary = false;
                             from_source(&context, &device, options).unwrap_or_else(|e| panic!("{}::Program::create_and_build_from_binary failed: {}", name, e))
                         })
-                    },
+                    }
                     None => {
                         warn!("Binary file not found for {}. Reverting to compiling from source.", device_name);
                         use_binary = false;
-                        from_source(&context, &device, options).unwrap_or_else(|e| panic!("{}::Program::create_and_build_from_binary failed: {}", name, e))
+                        from_source(&context, &device, options)
+                            .unwrap_or_else(|e| panic!("{}::Program::create_and_build_from_binary failed: {}", name, e))
                     }
                 }
             }

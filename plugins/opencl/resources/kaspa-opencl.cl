@@ -265,7 +265,7 @@ void STATIC inline _amul4bit(__constant uint32_t packed_vec1[32], uint32_t packe
     }
     *ret = res;
 }
-#elif (defined(PAL) && (defined(__gfx906__) || defined(__gfx908__))) || defined(__gfx1011__) || defined(__gfx1012__) || defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1032__) || defined(__gfx1034__)
+#elif (defined(OFFLINE) && (defined(__gfx906__) || defined(__gfx908__))) || defined(__gfx1011__) || defined(__gfx1012__) || defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1032__) || defined(__gfx1034__)
 #define amul4bit(X,Y,Z) _amul4bit((constant uint32_t*)(X), (private uint32_t*)(Y), (uint32_t *)(Z))
 void STATIC inline _amul4bit(__constant uint32_t packed_vec1[32], uint32_t packed_vec2[32], uint32_t *ret) {
     // We assume each 32 bits have four values: A0 B0 C0 D0

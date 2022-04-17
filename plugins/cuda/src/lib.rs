@@ -5,13 +5,13 @@ use clap::{ArgMatches, FromArgMatches};
 use cust::prelude::*;
 use kaspa_miner::{Plugin, Worker, WorkerSpec};
 use log::LevelFilter;
+use std::error::Error as StdError;
 #[cfg(feature = "overclock")]
 use {
     log::{error, info},
     nvml_wrapper::Device as NvmlDevice,
     nvml_wrapper::Nvml,
 };
-use std::error::Error as StdError;
 
 pub type Error = Box<dyn StdError + Send + Sync + 'static>;
 
@@ -38,7 +38,7 @@ impl CudaPlugin {
             specs: Vec::new(),
             _enabled: false,
             #[cfg(feature = "overclock")]
-            nvml_instance: Nvml::init()?
+            nvml_instance: Nvml::init()?,
         })
     }
 }
@@ -95,28 +95,28 @@ impl Plugin for CudaPlugin {
                         _ => None,
                     };
 
-                            let mut nvml_device: NvmlDevice = self.nvml_instance.device_by_index(gpus[i] as u32)?;
+                    let mut nvml_device: NvmlDevice = self.nvml_instance.device_by_index(gpus[i] as u32)?;
 
-                            if let Some(lmc) = lock_mem_clock {
-                                match nvml_device.set_mem_locked_clocks(lmc, lmc) {
-                                    Err(e) => error!("set mem locked clocks {:?}", e),
-                                    _ => info!("GPU #{} #{} lock mem clock at {} Mhz", i, &nvml_device.name()?, &lmc),
-                                };
-                            }
+                    if let Some(lmc) = lock_mem_clock {
+                        match nvml_device.set_mem_locked_clocks(lmc, lmc) {
+                            Err(e) => error!("set mem locked clocks {:?}", e),
+                            _ => info!("GPU #{} #{} lock mem clock at {} Mhz", i, &nvml_device.name()?, &lmc),
+                        };
+                    }
 
-                            if let Some(lcc) = lock_core_clock {
-                                match nvml_device.set_gpu_locked_clocks(lcc, lcc) {
-                                    Err(e) => error!("set gpu locked clocks {:?}", e),
-                                    _ => info!("GPU #{} #{} lock core clock at {} Mhz", i, &nvml_device.name()?, &lcc),
-                                };
-                            };
+                    if let Some(lcc) = lock_core_clock {
+                        match nvml_device.set_gpu_locked_clocks(lcc, lcc) {
+                            Err(e) => error!("set gpu locked clocks {:?}", e),
+                            _ => info!("GPU #{} #{} lock core clock at {} Mhz", i, &nvml_device.name()?, &lcc),
+                        };
+                    };
 
-                            if let Some(pl) = power_limit {
-                                match nvml_device.set_power_management_limit(pl * 1000) {
-                                    Err(e) => error!("set power limit {:?}", e),
-                                    _ => info!("GPU #{} #{} power limit at {} W", i, &nvml_device.name()?, &pl),
-                                };
-                            };
+                    if let Some(pl) = power_limit {
+                        match nvml_device.set_power_management_limit(pl * 1000) {
+                            Err(e) => error!("set power limit {:?}", e),
+                            _ => info!("GPU #{} #{} power limit at {} W", i, &nvml_device.name()?, &pl),
+                        };
+                    };
                 }
             }
 

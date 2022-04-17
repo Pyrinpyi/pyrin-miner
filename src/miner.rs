@@ -1,6 +1,7 @@
+use std::collections::HashMap;
 use std::num::Wrapping;
 use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::thread::sleep;
 use std::time::Duration;
 
@@ -95,6 +96,7 @@ pub struct MinerManager {
     logger_handle: JoinHandle<()>,
     is_synced: bool,
     hashes_tried: Arc<AtomicU64>,
+    hashes_by_worker: Arc<Mutex<HashMap<String, Arc<AtomicU64>>>>,
     current_state_id: AtomicUsize,
 }
 
@@ -134,6 +136,7 @@ impl MinerManager {
     pub fn new(send_channel: Sender<BlockSeed>, n_cpus: Option<u16>, manager: &PluginManager) -> Self {
         register_freeze_handler();
         let hashes_tried = Arc::new(AtomicU64::new(0));
+        let hashes_by_worker = Arc::new(Mutex::new(HashMap::<String, Arc<AtomicU64>>::new()));
         let (send, recv) = watch::channel(None);
         let mut handles =
             Self::launch_cpu_threads(send_channel.clone(), Arc::clone(&hashes_tried), recv.clone(), n_cpus)
@@ -144,16 +147,18 @@ impl MinerManager {
                 Arc::clone(&hashes_tried),
                 recv,
                 manager,
+                hashes_by_worker.clone(),
             ));
         }
         Self {
             handles,
             block_channel: send,
             send_channel,
-            logger_handle: task::spawn(Self::log_hashrate(Arc::clone(&hashes_tried))),
+            logger_handle: task::spawn(Self::log_hashrate(Arc::clone(&hashes_tried), hashes_by_worker.clone())),
             is_synced: true,
             hashes_tried,
             current_state_id: AtomicUsize::new(0),
+            hashes_by_worker,
         }
     }
 
@@ -174,15 +179,19 @@ impl MinerManager {
         hashes_tried: Arc<AtomicU64>,
         work_channel: watch::Receiver<Option<WorkerCommand>>,
         manager: &PluginManager,
+        hashes_by_worker: Arc<Mutex<HashMap<String, Arc<AtomicU64>>>>,
     ) -> Vec<MinerHandler> {
         let mut vec = Vec::<MinerHandler>::new();
         let specs = manager.build().unwrap();
         for spec in specs {
+            let worker_hashes_tried = Arc::new(AtomicU64::new(0));
+            hashes_by_worker.lock().unwrap().insert(spec.id(), worker_hashes_tried.clone());
             vec.push(Self::launch_gpu_miner(
                 send_channel.clone(),
                 work_channel.clone(),
                 Arc::clone(&hashes_tried),
                 spec,
+                worker_hashes_tried,
             ));
         }
         vec
@@ -215,6 +224,7 @@ impl MinerManager {
         mut block_channel: watch::Receiver<Option<WorkerCommand>>,
         hashes_tried: Arc<AtomicU64>,
         spec: Box<dyn WorkerSpec>,
+        worker_hashes_tried: Arc<AtomicU64>,
     ) -> MinerHandler {
         std::thread::spawn(move || {
             let mut box_ = spec.build();
@@ -262,6 +272,7 @@ impl MinerManager {
                             }
                             nonces[0] = 0;
                             hashes_tried.fetch_add(gpu_work.get_workload().try_into().unwrap(), Ordering::AcqRel);
+                            worker_hashes_tried.fetch_add(gpu_work.get_workload().try_into().unwrap(), Ordering::AcqRel);
                             continue;
                         } else {
                             let hash = state_ref.calculate_pow(nonces[0]);
@@ -301,6 +312,7 @@ impl MinerManager {
                         }*/
 
                     hashes_tried.fetch_add(gpu_work.get_workload().try_into().unwrap(), Ordering::AcqRel);
+                    worker_hashes_tried.fetch_add(gpu_work.get_workload().try_into().unwrap(), Ordering::AcqRel);
 
                     {
                         if let Some(new_cmd) = block_channel.get_changed()? {
@@ -394,21 +406,34 @@ impl MinerManager {
         })
     }
 
-    async fn log_hashrate(hashes_tried: Arc<AtomicU64>) {
+    async fn log_hashrate(hashes_tried: Arc<AtomicU64>, hashes_by_worker: Arc<Mutex<HashMap<String, Arc<AtomicU64>>>>) {
         let mut ticker = tokio::time::interval(LOG_RATE);
         ticker.set_missed_tick_behavior(MissedTickBehavior::Delay);
         let mut last_instant = ticker.tick().await;
-        for i in 0u64.. {
+        loop {
             let now = ticker.tick().await;
-            let hashes = hashes_tried.swap(0, Ordering::AcqRel);
-            let rate = (hashes as f64) / (now - last_instant).as_secs_f64();
-            if hashes == 0 && i % 2 == 0 {
-                warn!("Workers stalled or crashed. Considered reducing workload and check that your node is synced")
-            } else if hashes != 0 {
-                let (rate, suffix) = Self::hash_suffix(rate);
-                info!("Current hashrate is: {:.2} {}", rate, suffix);
+            let duration = (now - last_instant).as_secs_f64();
+            Self::log_single_hashrate(
+                &hashes_tried,
+                "".into(),
+                "Workers stalled or crashed. Considered reducing workload and check that your node is synced",
+                duration,
+            );
+            for (device, rate) in &*hashes_by_worker.lock().unwrap() {
+                Self::log_single_hashrate(rate, format!("{}: ", device), "Device had no hashes", duration);
             }
             last_instant = now;
+        }
+    }
+
+    fn log_single_hashrate(counter: &Arc<AtomicU64>, prefix: String, warn_message: &str, duration: f64) {
+        let hashes = counter.swap(0, Ordering::AcqRel);
+        let rate = (hashes as f64) / duration;
+        if hashes == 0 {
+            warn!("{}{}", prefix, warn_message)
+        } else if hashes != 0 {
+            let (rate, suffix) = Self::hash_suffix(rate);
+            info!("{}Current hashrate is: {:.2} {}", prefix, rate, suffix);
         }
     }
 

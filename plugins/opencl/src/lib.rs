@@ -96,6 +96,7 @@ impl Plugin for OpenCLPlugin {
             self.specs = (0..gpus.len())
                 .map(|i| OpenCLWorkerSpec {
                     _platform: *_platform,
+                    index: i,
                     device_id: Device::new(gpus[i]),
                     workload: match &opts.opencl_workload {
                         Some(workload) if i < workload.len() => workload[i],
@@ -116,6 +117,7 @@ impl Plugin for OpenCLPlugin {
 #[derive(Copy, Clone)]
 struct OpenCLWorkerSpec {
     _platform: Platform,
+    index: usize,
     device_id: Device,
     workload: f32,
     is_absolute: bool,
@@ -126,9 +128,13 @@ struct OpenCLWorkerSpec {
 
 impl WorkerSpec for OpenCLWorkerSpec {
     fn id(&self) -> String {
-        self.device_id
-            .board_name_amd()
-            .unwrap_or_else(|_| self.device_id.name().unwrap_or_else(|_| "Unknown Device".into()))
+        format!(
+            "#{} {}",
+            self.index,
+            self.device_id
+                .board_name_amd()
+                .unwrap_or_else(|_| self.device_id.name().unwrap_or_else(|_| "Unknown Device".into()))
+        )
     }
 
     fn build(&self) -> Box<dyn Worker> {

@@ -11,7 +11,8 @@ jobs:
       matrix:
         # Build gnu-linux on ubuntu-18.04 and musl on ubuntu latest
         os: [ ubuntu-18.04, windows-latest, macos-latest ]
-    name: Building, ${{ matrix.os }}
+        features: ["default", "kaspacuda/overclock "]
+    name: Building, ${{ matrix.os }} ${{ matrix.features }}
     steps:
       - name: Fix CRLF on Windows
         if: runner.os == 'Windows'
@@ -53,8 +54,9 @@ jobs:
         if: matrix.os == 'ubuntu-18.04'
         # We're using musl to make the binaries statically linked and portable
         run: |
-          cargo build --target=x86_64-unknown-linux-gnu --release --all
-          asset_name="kaspa-miner-${{ github.event.release.tag_name }}-linux-gnu-amd64"
+          cargo build --target=x86_64-unknown-linux-gnu --release --all --features ${{ matrix.features }}
+          feature_name=${{ matrix.features }}
+          asset_name="kaspa-miner-${{ github.event.release.tag_name }}-${feature_name/\//-}-linux-gnu-amd64"
           strip ./target/x86_64-unknown-linux-gnu/release/kaspa-miner
           mkdir ${asset_name}
           mv ./target/x86_64-unknown-linux-gnu/release/kaspa-miner ${asset_name}/${asset_name}
@@ -68,8 +70,9 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: bash
         run: |
-          cargo build --target=x86_64-pc-windows-msvc --release --all
-          asset_name="kaspa-miner-${{ github.event.release.tag_name }}-win64-amd64"
+          cargo build --target=x86_64-pc-windows-msvc --release --all --features ${{ matrix.features }}
+          feature_name=${{ matrix.features }}
+          asset_name="kaspa-miner-${{ github.event.release.tag_name }}-${feature_name/\//-}-win64-amd64"
           mkdir ${asset_name}
           mv ./target/x86_64-pc-windows-msvc/release/kaspa-miner.exe ${asset_name}/${asset_name}.exe
           mv ./target/x86_64-pc-windows-msvc/release/kaspa*.dll ${asset_name}/
@@ -80,8 +83,8 @@ jobs:
       - name: Build on MacOS
         if: matrix.os == 'macos-latest'
         run: |
-          RUSTFLAGS="-framework OpenCL" cargo build --target=x86_64-apple-darwin --release -p kaspa-miner -p kaspaopencl
-          asset_name="kaspa-miner-${{ github.event.release.tag_name }}-osx-amd64"
+          cargo build --target=x86_64-apple-darwin --release -p kaspa-miner
+          asset_name="kaspa-miner-${{ github.event.release.tag_name }}-cpu-only-osx-amd64"
           mkdir ${asset_name}
           mv ./target/x86_64-apple-darwin/release/kaspa-miner ${asset_name}/${asset_name}
           mv ./target/x86_64-apple-darwin/release/libkaspa*.so ${asset_name}/

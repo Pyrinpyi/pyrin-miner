@@ -1,5 +1,7 @@
+use chrono::{DateTime, Utc};
 use log::info;
 use std::sync::Arc;
+use std::time::{Duration, UNIX_EPOCH};
 
 pub use crate::pow::hasher::HeaderHasher;
 use crate::{
@@ -39,7 +41,14 @@ impl BlockSeed {
             BlockSeed::FullBlock(block) => {
                 let block_hash =
                     block.block_hash().expect("We just got it from the state, we should be able to hash it");
-                info!("Found a block: {:x}", block_hash);
+                let block_time = DateTime::<Utc>::from(
+                    UNIX_EPOCH + Duration::from_millis(block.header.as_ref().unwrap().timestamp as u64),
+                );
+                info!(
+                    "Found a block: {:x} (Timestamp: {})",
+                    block_hash,
+                    block_time.format("%Y-%m-%d %H:%M:%S").to_string()
+                );
             }
             BlockSeed::PartialBlock { .. } => info!("Found a share!"),
         }

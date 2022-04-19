@@ -152,27 +152,27 @@ impl<'gpu> CudaGPUWorker<'gpu> {
         info!("Device #{} compute version is {}.{}", device_id, major, minor);
         if major > 8 || (major == 8 && minor >= 6) {
             _module = Arc::new(Module::from_ptx(PTX_86, &[ModuleJitOption::OptLevel(OptLevel::O4)]).map_err(|e| {
-                error!("Error loading PTX: {}", e);
+                error!("Error loading PTX. Make sure you have the updated driver for you devices");
                 e
             })?);
         } else if major > 7 || (major == 7 && minor >= 5) {
             _module = Arc::new(Module::from_ptx(PTX_75, &[ModuleJitOption::OptLevel(OptLevel::O4)]).map_err(|e| {
-                error!("Error loading PTX: {}", e);
+                error!("Error loading PTX. Make sure you have the updated driver for you devices");
                 e
             })?);
         } else if major > 6 || (major == 6 && minor >= 1) {
             _module = Arc::new(Module::from_ptx(PTX_61, &[ModuleJitOption::OptLevel(OptLevel::O4)]).map_err(|e| {
-                error!("Error loading PTX: {}", e);
+                error!("Error loading PTX. Make sure you have the updated driver for you devices");
                 e
             })?);
         } else if major >= 3 {
             _module = Arc::new(Module::from_ptx(PTX_30, &[ModuleJitOption::OptLevel(OptLevel::O4)]).map_err(|e| {
-                error!("Error loading PTX: {}", e);
+                error!("Error loading PTX. Make sure you have the updated driver for you devices");
                 e
             })?);
         } else if major >= 2 {
             _module = Arc::new(Module::from_ptx(PTX_20, &[ModuleJitOption::OptLevel(OptLevel::O4)]).map_err(|e| {
-                error!("Error loading PTX: {}", e);
+                error!("Error loading PTX. Make sure you have the updated driver for you devices");
                 e
             })?);
         } else {

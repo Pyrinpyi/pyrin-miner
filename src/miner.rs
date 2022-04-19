@@ -415,12 +415,12 @@ impl MinerManager {
             let duration = (now - last_instant).as_secs_f64();
             Self::log_single_hashrate(
                 &hashes_tried,
-                "".into(),
+                "Current hashrate is".into(),
                 "Workers stalled or crashed. Considered reducing workload and check that your node is synced",
                 duration,
             );
             for (device, rate) in &*hashes_by_worker.lock().unwrap() {
-                Self::log_single_hashrate(rate, format!("{}: ", device), "Device had no hashes", duration);
+                Self::log_single_hashrate(rate, format!("Device {}:", device), "0 hash/s", duration);
             }
             last_instant = now;
         }
@@ -433,7 +433,7 @@ impl MinerManager {
             warn!("{}{}", prefix, warn_message)
         } else if hashes != 0 {
             let (rate, suffix) = Self::hash_suffix(rate);
-            info!("{}Current hashrate is: {:.2} {}", prefix, rate, suffix);
+            info!("{} {:.2} {}", prefix, rate, suffix);
         }
     }
 

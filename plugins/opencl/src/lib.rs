@@ -49,8 +49,12 @@ impl Plugin for OpenCLPlugin {
         let opts: OpenCLOpt = OpenCLOpt::from_arg_matches(matches)?;
 
         self._enabled = opts.opencl_enable;
-
-        let platforms = get_platforms().expect("opencl: could not find any platforms");
+        let platforms = match get_platforms() {
+            Ok(p) => p,
+            Err(e) => {
+                return Err(e.to_string().into());
+            }
+        };
         info!("OpenCL Found Platforms:");
         info!("=======================");
         for platform in &platforms {

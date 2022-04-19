@@ -71,9 +71,17 @@ impl PluginManager {
     pub fn process_options(&mut self, matchs: &ArgMatches) -> Result<usize, Error> {
         let mut count = 0usize;
         self.plugins.iter_mut().for_each(|plugin| {
-            count += plugin
-                .process_option(matchs)
-                .unwrap_or_else(|_| panic!("Could not process option for plugin {}", plugin.name()))
+            count += match plugin.process_option(matchs) {
+                Ok(n) => n,
+                Err(e) => {
+                    eprintln!(
+                        "WARNING: Failed processing options for {} (ignore if you do not intend to use): {}",
+                        plugin.name(),
+                        e
+                    );
+                    0
+                }
+            }
         });
         Ok(count)
     }

@@ -88,7 +88,6 @@ jobs:
           asset_name="kaspa-miner-${{ github.event.release.tag_name }}-cpu-only-osx-amd64"
           mkdir ${asset_name}
           mv ./target/x86_64-apple-darwin/release/kaspa-miner ${asset_name}/${asset_name}
-          mv ./target/x86_64-apple-darwin/release/libkaspa*.so ${asset_name}/
           tar czvf ${asset_name}.tgz ${asset_name}
           echo "archive=${asset_name}.tgz" >> $GITHUB_ENV
           echo "asset_name=${asset_name}.tgz" >> $GITHUB_ENV

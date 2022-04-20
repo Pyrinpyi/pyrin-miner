@@ -11,6 +11,8 @@ use rand::{Fill, RngCore};
 use std::ffi::CString;
 use std::sync::{Arc, Weak};
 
+static BPS: f32 = 1.;
+
 static PTX_86: &str = include_str!("../resources/kaspa-cuda-sm86.ptx");
 static PTX_75: &str = include_str!("../resources/kaspa-cuda-sm75.ptx");
 static PTX_61: &str = include_str!("../resources/kaspa-cuda-sm61.ptx");
@@ -53,6 +55,8 @@ pub struct CudaGPUWorker<'gpu> {
     // NOTE: The order is important! context must be closed last
     heavy_hash_kernel: Kernel<'gpu>,
     stream: Stream,
+    start_event: Event,
+    stop_event: Event,
     _module: Arc<Module>,
 
     rand_state: DeviceBuffer<u64>,
@@ -95,6 +99,7 @@ impl<'gpu> Worker for CudaGPUWorker<'gpu> {
             NonceGenEnum::Xoshiro => 1,
         };
 
+        self.start_event.record(stream).unwrap();
         unsafe {
             launch!(
                 func<<<
@@ -110,11 +115,16 @@ impl<'gpu> Worker for CudaGPUWorker<'gpu> {
             )
             .unwrap(); // We see errors in sync
         }
+        self.stop_event.record(stream).unwrap();
     }
 
     #[inline(always)]
     fn sync(&self) -> Result<(), Error> {
-        self.stream.synchronize()?;
+        //self.stream.synchronize()?;
+        self.stop_event.synchronize()?;
+        if self.stop_event.elapsed_time_f32(&self.start_event)? > 1000. / BPS {
+            return Err("Cuda takes longer then block rate. Please reduce your workload.".into());
+        }
         Ok(())
     }
 
@@ -183,32 +193,32 @@ impl<'gpu> CudaGPUWorker<'gpu> {
 
         let mut heavy_hash_kernel = Kernel::new(Arc::downgrade(&_module), "heavy_hash")?;
 
-        let mut chosen_workload = 0usize;
+        let mut chosen_workload = 0u32;
         if is_absolute {
             chosen_workload = 1;
         } else {
             let cur_workload = heavy_hash_kernel.get_workload();
-            if chosen_workload == 0 || chosen_workload < cur_workload as usize {
-                chosen_workload = cur_workload as usize;
+            if chosen_workload == 0 || chosen_workload < cur_workload {
+                chosen_workload = cur_workload;
             }
         }
-        chosen_workload = (chosen_workload as f32 * workload) as usize;
+        chosen_workload = (chosen_workload as f32 * workload) as u32;
         info!("GPU #{} Chosen workload: {}", device_id, chosen_workload);
-        heavy_hash_kernel.set_workload(chosen_workload as u32);
+        heavy_hash_kernel.set_workload(chosen_workload);
 
         let final_nonce_buff = vec![0u64; 1].as_slice().as_dbuf()?;
 
         let rand_state: DeviceBuffer<u64> = match random {
             NonceGenEnum::Xoshiro => {
                 info!("Using xoshiro for nonce-generation");
-                let mut buffer = DeviceBuffer::<u64>::zeroed(4 * chosen_workload).unwrap();
+                let mut buffer = DeviceBuffer::<u64>::zeroed(4 * (chosen_workload as usize)).unwrap();
                 info!("GPU #{} is generating initial seed. This may take some time.", device_id);
                 let mut seed = [1u64; 4];
                 seed.try_fill(&mut rand::thread_rng())?;
                 buffer.copy_from(
                     Xoshiro256StarStar::new(&seed)
                         .iter_jump_state()
-                        .take(chosen_workload)
+                        .take(chosen_workload as usize)
                         .flatten()
                         .collect::<Vec<u64>>()
                         .as_slice(),
@@ -228,7 +238,9 @@ impl<'gpu> CudaGPUWorker<'gpu> {
             device_id,
             _context,
             _module,
-            workload: chosen_workload,
+            start_event: Event::new(EventFlags::DEFAULT)?,
+            stop_event: Event::new(EventFlags::DEFAULT)?,
+            workload: chosen_workload as usize,
             stream,
             rand_state,
             final_nonce_buff,

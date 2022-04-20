@@ -258,7 +258,10 @@ impl MinerManager {
                         None => continue,
                     };
                     state_ref.pow_gpu(gpu_work);
-                    gpu_work.sync().unwrap();
+                    if let Err(e) = gpu_work.sync() {
+                        warn!("CUDA run ignored: {}", e);
+                        continue
+                    }
 
                     gpu_work.copy_output_to(&mut nonces)?;
                     if nonces[0] != 0 {
@@ -418,19 +421,29 @@ impl MinerManager {
                 "Current hashrate is".into(),
                 "Workers stalled or crashed. Considered reducing workload and check that your node is synced",
                 duration,
+                false,
             );
             for (device, rate) in &*hashes_by_worker.lock().unwrap() {
-                Self::log_single_hashrate(rate, format!("Device {}:", device), "0 hash/s", duration);
+                Self::log_single_hashrate(rate, format!("Device {}:", device), "0 hash/s", duration, true);
             }
             last_instant = now;
         }
     }
 
-    fn log_single_hashrate(counter: &Arc<AtomicU64>, prefix: String, warn_message: &str, duration: f64) {
+    fn log_single_hashrate(
+        counter: &Arc<AtomicU64>,
+        prefix: String,
+        warn_message: &str,
+        duration: f64,
+        keep_prefix: bool,
+    ) {
         let hashes = counter.swap(0, Ordering::AcqRel);
         let rate = (hashes as f64) / duration;
         if hashes == 0 {
-            warn!("{}{}", prefix, warn_message)
+            match keep_prefix {
+                true => warn!("{}{}", prefix, warn_message),
+                false => warn!("{}", warn_message),
+            };
         } else if hashes != 0 {
             let (rate, suffix) = Self::hash_suffix(rate);
             info!("{} {:.2} {}", prefix, rate, suffix);

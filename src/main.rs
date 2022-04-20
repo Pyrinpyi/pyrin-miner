@@ -43,7 +43,7 @@ type Hash = Uint256;
 
 #[cfg(target_os = "windows")]
 fn adjust_console() -> Result<(), Error> {
-    let console = win32console::console::WinConsole::output();
+    let console = win32console::console::WinConsole::input();
     let mut mode = console.get_mode()?;
     mode = (mode & !win32console::console::ConsoleMode::ENABLE_QUICK_EDIT_MODE)
         | win32console::console::ConsoleMode::ENABLE_EXTENDED_FLAGS;

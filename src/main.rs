@@ -41,6 +41,16 @@ pub type Error = Box<dyn StdError + Send + Sync + 'static>;
 
 type Hash = Uint256;
 
+#[cfg(target_os = "windows")]
+fn adjust_console() -> Result<(), Error> {
+    let console = win32console::console::WinConsole::output();
+    let mut mode = console.get_mode()?;
+    mode = (mode & !win32console::console::ConsoleMode::ENABLE_QUICK_EDIT_MODE)
+        | win32console::console::ConsoleMode::ENABLE_EXTENDED_FLAGS;
+    console.set_mode(mode)?;
+    Ok(())
+}
+
 fn filter_plugins(dirname: &str) -> Vec<String> {
     match fs::read_dir(dirname) {
         Ok(readdir) => readdir
@@ -110,6 +120,10 @@ async fn client_main(
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    #[cfg(target_os = "windows")]
+    adjust_console().unwrap_or_else(|e| {
+        eprintln!("WARNING: Failed to protect console ({}). Any selection in console will freeze the miner.", e)
+    });
     let mut path = current_exe().unwrap_or_default();
     path.pop(); // Getting the parent directory
     let plugins = filter_plugins(path.to_str().unwrap_or("."));

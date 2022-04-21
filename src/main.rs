@@ -135,9 +135,10 @@ async fn main() -> Result<(), Error> {
     let mut opt: Opt = Opt::from_arg_matches(&matches)?;
     opt.process()?;
     env_logger::builder().filter_level(opt.log_level()).parse_default_env().init();
-    info!("==============================");
-    info!("       Kaspa-Miner GPU {}", env!("CARGO_PKG_VERSION"));
-    info!("==============================");
+    info!("=================================================================================");
+    info!("                 Kaspa-Miner GPU {}", env!("CARGO_PKG_VERSION"));
+    info!(" Mining for: {}", opt.mining_address);
+    info!("=================================================================================");
     info!("Found plugins: {:?}", plugins);
     info!("Plugins found {} workers", worker_count);
     if worker_count == 0 && opt.num_threads.unwrap_or(0) == 0 {

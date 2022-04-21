@@ -4,7 +4,7 @@ use log::LevelFilter;
 use crate::Error;
 
 #[derive(Parser, Debug)]
-#[clap(name = "kaspa-miner", about = "A Kaspa high performance CPU miner", term_width = 0)]
+#[clap(name = "kaspa-miner", version, about = "A Kaspa high performance CPU miner", term_width = 0)]
 pub struct Opt {
     #[clap(short, long, help = "Enable debug logging level")]
     pub debug: bool,

@@ -1,7 +1,7 @@
 use crate::Error;
 use std::str::FromStr;
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum NonceGenEnum {
     Lean,
     Xoshiro,

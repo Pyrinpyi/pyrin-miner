@@ -10,8 +10,10 @@ use tokio_util::codec::Framed;
 
 mod statum_codec;
 
-use crate::client::stratum::statum_codec::{MiningSubscribe, SetExtranonce, StratumCommand, StratumError, StratumLinePayload, StratumResult};
 use crate::client::stratum::statum_codec::{ErrorCode, MiningNotify, MiningSubmit, NewLineJsonCodecError, StratumLine};
+use crate::client::stratum::statum_codec::{
+    MiningSubscribe, SetExtranonce, StratumCommand, StratumError, StratumLinePayload, StratumResult,
+};
 use crate::client::Client;
 use crate::pow::BlockSeed;
 use crate::pow::BlockSeed::PartialBlock;
@@ -107,9 +109,9 @@ impl Client for StratumHandler {
     }
 
     async fn register(&mut self) -> Result<(), Error> {
-        let mut id = {Some(self.last_stratum_id.fetch_add(1, Ordering::SeqCst))};
+        let mut id = { Some(self.last_stratum_id.fetch_add(1, Ordering::SeqCst)) };
         self.send_channel
-            .send(StratumLine{
+            .send(StratumLine {
                 id,
                 payload: StratumLinePayload::StratumCommand(StratumCommand::Subscribe(
                     MiningSubscribe::MiningSubscribeDefault((
@@ -135,11 +137,12 @@ impl Client for StratumHandler {
             }
         };
         self.send_channel
-            .send(StratumLine{
+            .send(StratumLine {
                 id,
-                payload: StratumLinePayload::StratumCommand(StratumCommand::Authorize(
-                    (pay_address.clone(), "x".into()),
-                )),
+                payload: StratumLinePayload::StratumCommand(StratumCommand::Authorize((
+                    pay_address.clone(),
+                    "x".into(),
+                ))),
                 jsonrpc: None,
                 error: None,
             })
@@ -245,10 +248,14 @@ impl StratumHandler {
                             id.clone(), //block_seed.clone()
                         );
                     }
-                    StratumLine{
+                    StratumLine {
                         id: Some(msg_id),
                         payload: StratumLinePayload::StratumCommand(StratumCommand::MiningSubmit(
-                            MiningSubmit::MiningSubmitShort((miner_address.clone(), id.into(), format!("{:016x}", nonce))),
+                            MiningSubmit::MiningSubmitShort((
+                                miner_address.clone(),
+                                id.into(),
+                                format!("{:016x}", nonce),
+                            )),
                         )),
                         jsonrpc: None,
                         error: None,
@@ -267,66 +274,69 @@ impl StratumHandler {
                 match payload {
                     StratumLinePayload::StratumResult { result } if id.is_some() => {
                         match result {
-                            StratumResult::Plain(Some(true)) | StratumResult::Eth((true, _))=> {
-                                if let Some(_jobid) = self.shares_stats.shares_pending.try_lock().unwrap().remove(&id.expect("We checked id is not none")) {
+                            StratumResult::Plain(Some(true)) | StratumResult::Eth((true, _)) => {
+                                if let Some(_jobid) = self
+                                    .shares_stats
+                                    .shares_pending
+                                    .try_lock()
+                                    .unwrap()
+                                    .remove(&id.expect("We checked id is not none"))
+                                {
                                     self.shares_stats.accepted.fetch_add(1, Ordering::SeqCst);
                                     info!("Share accepted");
                                 } else {
-                                info ! ("{:?} (Last: {})", msg.clone(), self.last_stratum_id.load(Ordering::SeqCst));
-                                warn ! ("Ignoring result for now");
+                                    info!("{:?} (Last: {})", msg.clone(), self.last_stratum_id.load(Ordering::SeqCst));
+                                    warn!("Ignoring result for now");
                                 }
                                 Ok(())
-                            },
+                            }
                             StratumResult::Subscribe((ref _subscriptions, ref extranonce, ref nonce_size)) => {
                                 self.set_extranonce(extranonce.as_str(), nonce_size)
                                 /*for (name, value) in _subscriptions {
-                                        match name.as_str() {
-                                            "mining.set_difficulty" => {self.set_difficulty(&f32::from_str(value.as_str())?)?;},
-                                            _ => {warn!("Ignored {} (={})", name, value);}
-                                        }
+                                    match name.as_str() {
+                                        "mining.set_difficulty" => {self.set_difficulty(&f32::from_str(value.as_str())?)?;},
+                                        _ => {warn!("Ignored {} (={})", name, value);}
                                     }
-                                    Ok(())*/
-                            },
+                                }
+                                Ok(())*/
+                            }
                             _ => Err(format!("Inconsistent stratum message: {:?}", msg).into()),
                         }
                     }
-                    StratumLinePayload::StratumCommand(command) => {
-                        match command {
-                            StratumCommand::SetExtranonce(
-                                SetExtranonce::SetExtranoncePlain(
-                                    (ref extranonce, ref nonce_size)
-                                )
-                            ) => self.set_extranonce(extranonce.as_str(), nonce_size),
-                            StratumCommand::MiningSetDifficulty((ref difficulty, ))=>
-                                self.set_difficulty(difficulty),
-                            StratumCommand::MiningNotify (
-                                MiningNotify::MiningNotifyShort(
-                                    (id, header_hash, timestamp)
-                                )
-                            ) => {
-                                self.block_template_ctr
-                                    .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |v| Some((v + 1) % 10_000))
-                                    .unwrap();
-                                miner
-                                    .process_block(Some(PartialBlock {
-                                        id,
-                                        header_hash,
-                                        timestamp,
-                                        nonce: 0,
-                                        target: self.target_pool,
-                                        nonce_mask: self.nonce_mask,
-                                        nonce_fixed: self.nonce_fixed,
-                                        hash: None,
-                                    }))
-                                    .await
-                            },
-                            _ =>  Err(format!("Unexpected stratum message: {:?}", msg).into())
+                    StratumLinePayload::StratumCommand(command) => match command {
+                        StratumCommand::SetExtranonce(SetExtranonce::SetExtranoncePlain((
+                            ref extranonce,
+                            ref nonce_size,
+                        ))) => self.set_extranonce(extranonce.as_str(), nonce_size),
+                        StratumCommand::MiningSetDifficulty((ref difficulty,)) => self.set_difficulty(difficulty),
+                        StratumCommand::MiningNotify(MiningNotify::MiningNotifyShort((id, header_hash, timestamp))) => {
+                            self.block_template_ctr
+                                .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |v| Some((v + 1) % 10_000))
+                                .unwrap();
+                            miner
+                                .process_block(Some(PartialBlock {
+                                    id,
+                                    header_hash,
+                                    timestamp,
+                                    nonce: 0,
+                                    target: self.target_pool,
+                                    nonce_mask: self.nonce_mask,
+                                    nonce_fixed: self.nonce_fixed,
+                                    hash: None,
+                                }))
+                                .await
                         }
+                        _ => Err(format!("Unexpected stratum message: {:?}", msg).into()),
                     },
                     _ => Err(format!("Inconsistent stratum message: {:?}", msg).into()),
                 }
-            },
-            StratumLine { id: Some(id), payload: StratumLinePayload::StratumResult { .. }, error: Some(StratumError(code, error, _)), .. } => {
+            }
+            StratumLine {
+                id: Some(id),
+                payload: StratumLinePayload::StratumResult { .. },
+                error: Some(StratumError(code, error, _)),
+                ..
+            } => {
                 let jobid = { self.shares_stats.shares_pending.try_lock().unwrap().remove(&id) }.unwrap();
                 match code {
                     ErrorCode::Unknown => {

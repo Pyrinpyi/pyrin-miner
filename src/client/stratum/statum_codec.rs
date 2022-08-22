@@ -32,11 +32,7 @@ impl Display for ErrorCode {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub(crate) struct StratumError(
-    pub(crate) ErrorCode,
-    pub(crate) String,
-    #[serde(default)] pub(crate) Option<Value>
-);
+pub(crate) struct StratumError(pub(crate) ErrorCode, pub(crate) String, #[serde(default)] pub(crate) Option<Value>);
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
@@ -67,7 +63,7 @@ pub enum SetExtranonce {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(tag = "method", content="params")]
+#[serde(tag = "method", content = "params")]
 pub(crate) enum StratumCommand {
     #[serde(rename = "mining.set_extranonce", alias = "set_extranonce")]
     SetExtranonce(SetExtranonce),
@@ -93,14 +89,14 @@ pub(crate) enum StratumCommand {
 pub(crate) enum StratumResult {
     Plain(Option<bool>),
     Eth((bool, String)),
-    Subscribe((Vec<(String, String)>, String, u32))
+    Subscribe((Vec<(String, String)>, String, u32)),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub(crate) enum StratumLinePayload {
     StratumCommand(StratumCommand),
-    StratumResult{ result: StratumResult },
+    StratumResult { result: StratumResult },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -179,10 +175,7 @@ impl Encoder<StratumLine> for NewLineJsonCodec {
 
     fn encode(&mut self, item: StratumLine, dst: &mut BytesMut) -> Result<(), Self::Error> {
         match serde_json::to_string(&item) {
-            Ok(json) => {
-                let encoded = self.lines_codec.encode(json, dst).map_err(|_| NewLineJsonCodecError::LineEncodeError);
-                encoded
-            }
+            Ok(json) => self.lines_codec.encode(json, dst).map_err(|_| NewLineJsonCodecError::LineEncodeError),
             Err(e) => {
                 error!("Error! {:?}", e);
                 Err(NewLineJsonCodecError::JsonEncodeError)

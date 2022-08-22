@@ -10,7 +10,7 @@
 
 ## Installation
 ### From Sources
-Install via `cargo install` not supported for latest version.
+Installing via `cargo install` is not supported for the latest version.
 
 The regular version is still available at
 ```sh
@@ -20,7 +20,7 @@ cargo install kaspa-miner
 ### From Git Sources
 
 If you are looking to build from the repository (for debug / extension), note that the plugins are additional
-packages in the workspace. To compile a specific package, run the following command or any subset of it
+packages in the workspace. To compile a specific package, you run the following command or any subset of it
 
 ```sh
 git clone git@github.com:tmrlvi/kaspa-miner.git
@@ -36,14 +36,14 @@ cargo build --release --all
 The [release page](https://github.com/tmrlvi/kaspa-miner/releases) includes precompiled binaries for Linux, and Windows (for the GPU version).
 
 ### Removing Plugins
-To remove a plugin simply remove the corresponding `dll`/`so` for the directory of the miner. 
+To remove a plugin, you simply remove the corresponding `dll`/`so` for the directory of the miner. 
 
 * `libkaspacuda.so`, `libkaspacuda.dll`: Cuda support for Kaspa-Miner
 * `libkaspaopencl.so`, `libkaspaopencl.dll`: OpenCL support for Kaspa-Miner
 
 # Usage
-To start mining you need to run [kaspad](https://github.com/kaspanet/kaspad) and have an address to send the rewards to.
-There's a guide here on how to run a full node and how to generate addresses: https://github.com/kaspanet/docs/blob/main/Getting%20Started/Full%20Node%20Installation.md
+To start mining, you need to run [kaspad](https://github.com/kaspanet/kaspad) and have an address to send the rewards to.
+Here is a guidance on how to run a full node and how to generate addresses: https://github.com/kaspanet/docs/blob/main/Getting%20Started/Full%20Node%20Installation.md
 
 Help:
 ```
@@ -82,11 +82,11 @@ OPTIONS:
         --testnet                                          Use testnet instead of mainnet [default: false]
 ```
 
-To start mining you just need to run the following:
+To start mining, you just need to run the following:
 
 `./kaspa-miner --mining-address kaspa:XXXXX`
 
-This will run the miner on all the available CPU cores.
+This will run the miner on all the available GPU devcies.
 
 # Devfund
 

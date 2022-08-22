@@ -773,6 +773,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "kaspaxilinx"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "env_logger",
+ "include_dir",
+ "kaspa-miner",
+ "log",
+ "rand 0.8.4",
+]
+
+[[package]]
 name = "keccak"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

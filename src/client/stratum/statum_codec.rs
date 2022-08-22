@@ -1,5 +1,5 @@
 use bytes::BytesMut;
-use log::debug;
+use log::error;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_repr::*;
@@ -31,53 +31,86 @@ impl Display for ErrorCode {
     }
 }
 
-type StratumError = Option<(ErrorCode, String, Option<Value>)>;
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub(crate) struct StratumError(
+    pub(crate) ErrorCode,
+    pub(crate) String,
+    #[serde(default)] pub(crate) Option<Value>
+);
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub(crate) enum MiningNotify {
-    MiningNotifyShort {
-        id: Option<u32>,
-        params: (String, [u64; 4], u64),
-        error: StratumError,
-    },
-    MiningNotifyLong {
-        id: Option<u32>,
-        params: (String, String, String, String, Vec<String>, String, String, String, bool),
-        error: StratumError,
-    },
+    MiningNotifyShort((String, [u64; 4], u64)),
+    MiningNotifyLong((String, String, String, String, Vec<String>, String, String, String, bool)),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
-pub(crate) enum MiningSubmit {
-    MiningSubmitShort { id: u32, params: (String, String, String), error: StratumError },
-    MiningSubmitLong { id: u32, params: (String, String, String, String, String), error: StratumError },
+pub enum MiningSubmit {
+    MiningSubmitShort((String, String, String)),
+    MiningSubmitLong((String, String, String, String, String)),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(tag = "method")]
+#[serde(untagged)]
+pub enum MiningSubscribe {
+    MiningSubscribeDefault((String,)),
+    MiningSubscribeOptions((String, String)),
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(untagged)]
+pub enum SetExtranonce {
+    SetExtranoncePlain((String, u32)),
+    SetExtranoncePlainEth((String,)),
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(tag = "method", content="params")]
 pub(crate) enum StratumCommand {
-    #[serde(rename = "set_extranonce")]
-    SetExtranonce { id: u32, params: (String, u32), error: StratumError },
+    #[serde(rename = "mining.set_extranonce", alias = "set_extranonce")]
+    SetExtranonce(SetExtranonce),
     #[serde(rename = "mining.set_difficulty")]
-    MiningSetDifficulty { id: Option<u32>, params: (f32,), error: StratumError },
+    MiningSetDifficulty((f32,)),
     #[serde(rename = "mining.notify")]
     MiningNotify(MiningNotify),
     #[serde(rename = "mining.subscribe")]
-    Subscribe { id: u32, params: (String,), error: StratumError },
+    Subscribe(MiningSubscribe),
     #[serde(rename = "mining.authorize")]
-    Authorize { id: u32, params: (String, String), error: StratumError },
+    Authorize((String, String)),
     #[serde(rename = "mining.submit")]
     MiningSubmit(MiningSubmit),
+    /*#[serde(rename = "mining.submit_hashrate")]
+    MiningSubmitHashrate {
+        params: (String, String),
+        worker: String,
+    },*/ //{"id":9,"method":"mining.submit_hashrate","jsonrpc":"2.0","worker":"rig","params":["0x00000000000000000000000000000000","0x85198cd10b915d560722cdfdf490d4d93892d2cc3fa5f2ff2195d499d04ee54c"]}
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
-pub(crate) enum StratumLine {
+pub(crate) enum StratumResult {
+    Plain(Option<bool>),
+    Eth((bool, String)),
+    Subscribe((Vec<(String, String)>, String, u32))
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(untagged)]
+pub(crate) enum StratumLinePayload {
     StratumCommand(StratumCommand),
-    StratumResult { id: u32, result: Option<bool>, error: StratumError },
-    SubscribeResult { id: u32, result: (Vec<(String, String)>, String, u32), error: StratumError },
+    StratumResult{ result: StratumResult },
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub(crate) struct StratumLine {
+    pub(crate) id: Option<u32>,
+    #[serde(flatten)]
+    pub(crate) payload: StratumLinePayload,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) jsonrpc: Option<String>,
+    pub(crate) error: Option<StratumError>,
 }
 
 /// An error occurred while encoding or decoding a line.
@@ -123,7 +156,6 @@ impl Decoder for NewLineJsonCodec {
     type Error = NewLineJsonCodecError;
 
     fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
-        debug!("decoding {:?}", src);
         match self.lines_codec.decode(src) {
             Ok(Some(s)) => {
                 serde_json::from_str::<StratumLine>(s.as_str()).map_err(|e| (e.to_string(), s).into()).map(Some)
@@ -134,7 +166,6 @@ impl Decoder for NewLineJsonCodec {
     }
 
     fn decode_eof(&mut self, buf: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
-        debug!("Finalizing decoding");
         match self.lines_codec.decode_eof(buf) {
             Ok(Some(s)) => serde_json::from_str(s.as_str()).map_err(|e| (e.to_string(), s).into()),
             Err(_) => Err(NewLineJsonCodecError::LineSplitError),
@@ -147,10 +178,16 @@ impl Encoder<StratumLine> for NewLineJsonCodec {
     type Error = NewLineJsonCodecError;
 
     fn encode(&mut self, item: StratumLine, dst: &mut BytesMut) -> Result<(), Self::Error> {
-        if let Ok(json) = serde_json::to_string(&item) {
-            return self.lines_codec.encode(json, dst).map_err(|_| NewLineJsonCodecError::LineEncodeError);
+        match serde_json::to_string(&item) {
+            Ok(json) => {
+                let encoded = self.lines_codec.encode(json, dst).map_err(|_| NewLineJsonCodecError::LineEncodeError);
+                encoded
+            }
+            Err(e) => {
+                error!("Error! {:?}", e);
+                Err(NewLineJsonCodecError::JsonEncodeError)
+            }
         }
-        Err(NewLineJsonCodecError::JsonEncodeError)
     }
 }
 

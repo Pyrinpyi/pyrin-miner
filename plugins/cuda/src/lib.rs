@@ -130,7 +130,7 @@ impl Plugin for CudaPlugin {
                     },
                     is_absolute: opts.cuda_workload_absolute,
                     blocking_sync: !opts.cuda_no_blocking_sync,
-                    random: opts.nonce_gen,
+                    random: opts.cuda_nonce_gen,
                 })
                 .collect();
         }

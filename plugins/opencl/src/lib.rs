@@ -110,7 +110,7 @@ impl Plugin for OpenCLPlugin {
                     is_absolute: opts.opencl_workload_absolute,
                     experimental_amd: opts.experimental_amd,
                     use_amd_binary: !opts.opencl_no_amd_binary,
-                    random: opts.nonce_gen,
+                    random: opts.opencl_nonce_gen,
                 })
                 .collect();
         }

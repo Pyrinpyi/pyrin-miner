@@ -2,7 +2,7 @@ use std::env;
 use time::{format_description, OffsetDateTime};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    std::env::set_var("PROTOC", protobuf_src::protoc());
+    //std::env::set_var("PROTOC", protobuf_src::protoc());
 
     let format = format_description::parse("[year repr:last_two][month][day][hour][minute]")?;
     let dt = OffsetDateTime::now_utc().format(&format)?;

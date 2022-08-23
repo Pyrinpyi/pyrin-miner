@@ -1,7 +1,7 @@
 use crate::Error;
 use std::str::FromStr;
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum NonceGenEnum {
     Lean,
     Xoshiro,
@@ -49,5 +49,5 @@ pub struct OpenCLOpt {
         long_help = "The random method used to generate nonces. Options: (i) xoshiro - each thread in GPU will have its own random state, creating a (pseudo-)independent xoshiro sequence (ii) lean - each GPU will have a single random nonce, and each GPU thread will work on nonce + thread id.",
         default_value = "lean"
     )]
-    pub nonce_gen: NonceGenEnum,
+    pub opencl_nonce_gen: NonceGenEnum,
 }

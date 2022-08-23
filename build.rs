@@ -2,7 +2,6 @@ use std::env;
 use time::{format_description, OffsetDateTime};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-
     let format = format_description::parse("[year repr:last_two][month][day][hour][minute]")?;
     let dt = OffsetDateTime::now_utc().format(&format)?;
     println!("cargo:rustc-env=PACKAGE_COMPILE_TIME={}", dt);

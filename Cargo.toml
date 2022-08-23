@@ -1,6 +1,6 @@
 [package]
 name = "kaspa-miner"
-version = "0.2.1-GPU-0.6"
+version = "0.2.1-GPU-0.7"
 edition = "2021"
 license = "MIT/Apache-2.0"
 authors = ["Elichai <elichai.turkel@gmail.com>"]
@@ -68,6 +68,7 @@ codegen-units = 1
 
 [build-dependencies]
 tonic-build = { version = "0.8", default-features = false, features = ["prost", "transport"] }
+protobuf-src = "1.0"
 cc = "1"
 time = { version = "0.3", features = ["formatting"] }
 

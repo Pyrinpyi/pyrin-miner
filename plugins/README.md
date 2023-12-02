@@ -7,7 +7,7 @@
 **CAUTION! Plugins can run arbitrary code: if you use precompiled, make sure they come from 
 reputable source**
 
-The plugin system relies on three interfaces defined in `lib.rs` on `kaspa-miner`. 
+The plugin system relies on three interfaces defined in `lib.rs` on `pyrin-miner`. 
 Each interface refers to an object which has a different job:
   * **Plugin** - the environment and configuration of a type of workers.
   * **WorkerSpec** - Light weight struct containing the initialization arguments for a worker.

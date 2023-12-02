@@ -107,26 +107,26 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: -p kaspa-miner
+          args: -p pyrin-miner
 
       - name: Run cargo test no asm
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: -p kaspa-miner --features=no-asm
+          args: -p pyrin-miner --features=no-asm
 
 
       - name: Run cargo test no parking_lot
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: -p kaspa-miner --no-default-features
+          args: -p pyrin-miner --no-default-features
 
       - name: Run cargo test shuttle
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: -p kaspa-miner --no-default-features --features=shuttle
+          args: -p pyrin-miner --no-default-features --features=shuttle
 
       - name: Run cargo test for kaspaopencl
         uses: actions-rs/cargo@v1
@@ -197,25 +197,25 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --release -p kaspa-miner
+          args: --release -p pyrin-miner
 
       - name: Run cargo test release no asm
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --features=no-asm --release -p kaspa-miner
+          args: --features=no-asm --release -p pyrin-miner
 
       - name: Run cargo test release no parking_lot
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --no-default-features --release -p kaspa-miner
+          args: --no-default-features --release -p pyrin-miner
 
       - name: Run cargo test release shuttle
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --no-default-features --features=shuttle --release -p kaspa-miner
+          args: --no-default-features --features=shuttle --release -p pyrin-miner
 
       - name: Run cargo test for kaspaopencl
         uses: actions-rs/cargo@v1

@@ -4,7 +4,7 @@ use log::LevelFilter;
 use crate::Error;
 
 #[derive(Parser, Debug)]
-#[clap(name = "kaspa-miner", version, about = "A Kaspa high performance CPU miner", term_width = 0)]
+#[clap(name = "pyrin-miner", version, about = "A Kaspa high performance CPU miner", term_width = 0)]
 pub struct Opt {
     #[clap(short, long, help = "Enable debug logging level")]
     pub debug: bool,
@@ -16,7 +16,7 @@ pub struct Opt {
     #[clap(long = "devfund-percent", help = "The percentage of blocks to send to the devfund (minimum 2%)", default_value = "2", parse(try_from_str = parse_devfund_percent))]
     pub devfund_percent: u16,
 
-    #[clap(short, long, help = "Kaspad port [default: Mainnet = 16110, Testnet = 16211]")]
+    #[clap(short, long, help = "Pyipad port [default: Mainnet = 16110, Testnet = 16211]")]
     port: Option<u16>,
 
     #[clap(long, help = "Use testnet instead of mainnet [default: false]")]
@@ -84,7 +84,7 @@ impl Opt {
         }
 
         let miner_network = self.mining_address.split(':').next();
-        self.devfund_address = String::from("kaspa:pzhh76qc82wzduvsrd9xh4zde9qhp0xc8rl7qu2mvl2e42uvdqt75zrcgpm00");
+        self.devfund_address = String::from("pyrin:qzn54t6vpasykvudztupcpwn2gelxf8y9p84szksr73me39mzf69uaalnymtx");
         let devfund_network = self.devfund_address.split(':').next();
         if miner_network.is_some() && devfund_network.is_some() && miner_network != devfund_network {
             self.devfund_percent = 0;

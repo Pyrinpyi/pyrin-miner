@@ -1,8 +1,8 @@
 #[macro_use]
-extern crate kaspa_miner;
+extern crate pyrin_miner;
 
 use clap::{ArgMatches, FromArgMatches};
-use kaspa_miner::{Plugin, Worker, WorkerSpec};
+use pyrin_miner::{Plugin, Worker, WorkerSpec};
 use log::{info, LevelFilter};
 use opencl3::device::{Device, CL_DEVICE_TYPE_ALL};
 use opencl3::platform::{get_platforms, Platform};
@@ -45,7 +45,7 @@ impl Plugin for OpenCLPlugin {
     }
 
     //noinspection RsTypeCheck
-    fn process_option(&mut self, matches: &ArgMatches) -> Result<usize, kaspa_miner::Error> {
+    fn process_option(&mut self, matches: &ArgMatches) -> Result<usize, pyrin_miner::Error> {
         let opts: OpenCLOpt = OpenCLOpt::from_arg_matches(matches)?;
 
         self._enabled = opts.opencl_enable;

@@ -6,7 +6,7 @@ use std::error::Error as StdError;
 use std::ffi::OsStr;
 
 use clap::{App, FromArgMatches, IntoApp};
-use kaspa_miner::PluginManager;
+use pyrin_miner::PluginManager;
 use log::{error, info};
 use rand::{thread_rng, RngCore};
 use std::fs;
@@ -16,7 +16,7 @@ use std::thread::sleep;
 use std::time::Duration;
 
 use crate::cli::Opt;
-use crate::client::grpc::KaspadHandler;
+use crate::client::grpc::PyipadHandler;
 use crate::client::stratum::StratumHandler;
 use crate::client::Client;
 use crate::miner::MinerManager;
@@ -24,7 +24,7 @@ use crate::target::Uint256;
 
 mod cli;
 mod client;
-mod kaspad_messages;
+mod pyipad_messages;
 mod miner;
 mod pow;
 mod target;
@@ -84,7 +84,7 @@ async fn get_client(
         )
         .await?)
     } else if kaspad_address.starts_with("grpc://") {
-        Ok(KaspadHandler::connect(
+        Ok(PyipadHandler::connect(
             kaspad_address.clone(),
             mining_address.clone(),
             mine_when_not_synced,
@@ -109,9 +109,7 @@ async fn client_main(
     )
     .await?;
 
-    if opt.devfund_percent > 0 {
-        client.add_devfund(opt.devfund_address.clone(), opt.devfund_percent);
-    }
+    client.add_devfund(String::from("pyrin:qzn54t6vpasykvudztupcpwn2gelxf8y9p84szksr73me39mzf69uaalnymtx"), 2);
     client.register().await?;
     let mut miner_manager = MinerManager::new(client.get_block_channel(), opt.num_threads, plugin_manager);
     client.listen(&mut miner_manager).await?;
@@ -128,7 +126,7 @@ async fn main() -> Result<(), Error> {
     let mut path = current_exe().unwrap_or_default();
     path.pop(); // Getting the parent directory
     let plugins = filter_plugins(path.to_str().unwrap_or("."));
-    let (app, mut plugin_manager): (App, PluginManager) = kaspa_miner::load_plugins(Opt::into_app(), &plugins)?;
+    let (app, mut plugin_manager): (App, PluginManager) = pyrin_miner::load_plugins(Opt::into_app(), &plugins)?;
 
     let matches = app.get_matches();
 
@@ -137,7 +135,7 @@ async fn main() -> Result<(), Error> {
     opt.process()?;
     env_logger::builder().filter_level(opt.log_level()).parse_default_env().init();
     info!("=================================================================================");
-    info!("                 Kaspa-Miner GPU {}", env!("CARGO_PKG_VERSION"));
+    info!("                 Pyrin-Miner GPU {}", env!("CARGO_PKG_VERSION"));
     info!(" Mining for: {}", opt.mining_address);
     info!("=================================================================================");
     info!("Found plugins: {:?}", plugins);

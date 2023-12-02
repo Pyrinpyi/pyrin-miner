@@ -1,8 +1,8 @@
 use crate::cli::NonceGenEnum;
 use crate::Error;
 use include_dir::{include_dir, Dir};
-use kaspa_miner::xoshiro256starstar::Xoshiro256StarStar;
-use kaspa_miner::Worker;
+use pyrin_miner::xoshiro256starstar::Xoshiro256StarStar;
+use pyrin_miner::Worker;
 use log::{info, warn};
 use opencl3::command_queue::{CommandQueue, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE};
 use opencl3::context::Context;

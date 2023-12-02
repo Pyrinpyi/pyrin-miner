@@ -1,4 +1,4 @@
-# Cuda Support For Kaspa-Miner
+# Cuda Support For Pyrin-Miner
 
 ## Building
 
@@ -12,8 +12,8 @@ This version includes a precompiled PTX, which would work with most modern GPUs.
 you have to clone the project:
 
 ```sh
-git clone https://github.com/tmrlvi/kaspa-miner.git
-cd kaspa-miner
+git clone https://github.com/tmrlvi/pyrin-miner.git
+cd pyrin-miner
 # Compute version 8.6
 /usr/local/cuda-11.5/bin/nvcc plugins/cuda/kaspa-cuda-native/src/kaspa-cuda.cu -std=c++11 -O3 --restrict --ptx --gpu-architecture=compute_86 --gpu-code=sm_86 -o plugins/cuda/resources/kaspa-cuda-sm86.ptx -Xptxas -O3 -Xcompiler -O3
 # Compute version 7.5

@@ -13,7 +13,7 @@ use crate::{
     target::{self, Uint256},
     Error, Hash,
 };
-use kaspa_miner::Worker;
+use pyrin_miner::Worker;
 
 mod hasher;
 mod heavy_hash;
@@ -219,6 +219,7 @@ pub fn serialize_header<H: Hasher>(hasher: &mut H, header: &RpcBlockHeader, for_
 
     decode_to_slice(&header.pruning_point, &mut hash).unwrap();
     hasher.update(hash);
+
 }
 
 #[allow(dead_code)] // False Positive: https://github.com/rust-lang/rust/issues/88900

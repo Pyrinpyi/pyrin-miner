@@ -5,7 +5,7 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-kaspa_miner = {path = "../../", package="kaspa-miner"}
+pyrin_miner = {path = "../../", package="pyrin-miner"}
 clap = { version = "3.0", features = ["color", "derive"]}
 env_logger = "0.9"
 opencl3 = {version = "0.6", features = ["CL_VERSION_2_1", "CL_VERSION_2_2", "CL_VERSION_3_0"]}

@@ -1,15 +1,15 @@
 ####################################################################################
 ###
-### kaspa-miner
-### https://github.com/tmrlvi/kaspa-miner/releases
+### pyrin-miner
+### https://github.com/tmrlvi/pyrin-miner/releases
 ###
 ### Hive integration: Merlin
 ###
 ####################################################################################
 
 #!/usr/bin/env bash
-[[ -e /hive/custom ]] && . /hive/custom/kaspa-miner/h-manifest.conf
-[[ -e /hive/miners/custom ]] && . /hive/miners/custom/kaspa-miner/h-manifest.conf
+[[ -e /hive/custom ]] && . /hive/custom/pyrin-miner/h-manifest.conf
+[[ -e /hive/miners/custom ]] && . /hive/miners/custom/pyrin-miner/h-manifest.conf
 conf=""
 conf+=" --kaspad-address=$CUSTOM_URL --mining-address $CUSTOM_TEMPLATE"
 

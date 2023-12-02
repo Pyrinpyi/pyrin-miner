@@ -1,7 +1,7 @@
 ####################################################################################
 ###
-### kaspa-miner
-### https://github.com/tmrlvi/kaspa-miner/releases
+### pyrin-miner
+### https://github.com/tmrlvi/pyrin-miner/releases
 ###
 ### Hive integration: Merlin
 ###

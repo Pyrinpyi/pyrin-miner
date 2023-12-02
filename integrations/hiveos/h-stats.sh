@@ -1,7 +1,7 @@
 ####################################################################################
 ###
-### kaspa-miner
-### https://github.com/tmrlvi/kaspa-miner/releases
+### pyrin-miner
+### https://github.com/tmrlvi/pyrin-miner/releases
 ###
 ### Hive integration: Merlin
 ###
@@ -13,7 +13,7 @@
 # MAIN script body
 #######################
 
-. /hive/miners/custom/kaspa-miner/h-manifest.conf
+. /hive/miners/custom/pyrin-miner/h-manifest.conf
 stats_raw=`cat $CUSTOM_LOG_BASENAME.log | grep -w "hashrate" | tail -n 1 `
 #echo $stats_raw
 
@@ -60,13 +60,13 @@ if [ "$diffTime" -lt "$maxDelay" ]; then
                 [[ "${busids[i]}" =~ ^([A-Fa-f0-9]+): ]]
                 busid_arr+=($((16#${BASH_REMATCH[1]})))
                 temp_arr+=(${temps[i]})
-                fan_arr+=(${fans[i]})                
+                fan_arr+=(${fans[i]})
                 gpu_raw=`cat $CUSTOM_LOG_BASENAME.log | grep -w "Device #"$i | tail -n 1 `
                 hashrate=`echo $gpu_raw | awk '{print $(NF-1)}' | cut -d "." -f 1,2 --output-delimiter='' | sed 's/$/0/'`
                 if [[ $gpu_raw == *"Ghash"* ]]; then
                         hashrate=$(($hashrate*1000))
                 fi
-                hash_arr+=($hashrate)		
+                hash_arr+=($hashrate)
         done
 
         hash_json=`printf '%s\n' "${hash_arr[@]}" | jq -cs '.'`

@@ -59,10 +59,10 @@ jobs:
         run: |
           cargo build --target=x86_64-unknown-linux-gnu --release --all --features ${{ matrix.features }}
           feature_name=${{ matrix.features }}
-          asset_name="kaspa-miner-${{ github.event.release.tag_name }}-${feature_name/\//-}-linux-gnu-amd64"
-          strip ./target/x86_64-unknown-linux-gnu/release/kaspa-miner
+          asset_name="pyrin-miner-${{ github.event.release.tag_name }}-${feature_name/\//-}-linux-gnu-amd64"
+          strip ./target/x86_64-unknown-linux-gnu/release/pyrin-miner
           mkdir ${asset_name}
-          mv ./target/x86_64-unknown-linux-gnu/release/kaspa-miner ${asset_name}/${asset_name}
+          mv ./target/x86_64-unknown-linux-gnu/release/pyrin-miner ${asset_name}/${asset_name}
           mv ./target/x86_64-unknown-linux-gnu/release/libkaspa*.so ${asset_name}/
           tar czvf ${asset_name}.tgz ${asset_name}
           echo "archive=${asset_name}.tgz" >> $GITHUB_ENV
@@ -75,9 +75,9 @@ jobs:
         run: |
           cargo build --target=x86_64-pc-windows-msvc --release --all --features ${{ matrix.features }}
           feature_name=${{ matrix.features }}
-          asset_name="kaspa-miner-${{ github.event.release.tag_name }}-${feature_name/\//-}-win64-amd64"
+          asset_name="pyrin-miner-${{ github.event.release.tag_name }}-${feature_name/\//-}-win64-amd64"
           mkdir ${asset_name}
-          mv ./target/x86_64-pc-windows-msvc/release/kaspa-miner.exe ${asset_name}/${asset_name}.exe
+          mv ./target/x86_64-pc-windows-msvc/release/pyrin-miner.exe ${asset_name}/${asset_name}.exe
           mv ./target/x86_64-pc-windows-msvc/release/kaspa*.dll ${asset_name}/
           bash ./integrations/windows/create_bat.sh ${asset_name}
           7z a -tzip -r ${asset_name}.zip ${asset_name}
@@ -87,10 +87,10 @@ jobs:
       - name: Build on MacOS
         if: matrix.os == 'macos-latest'
         run: |
-          cargo build --target=x86_64-apple-darwin --release -p kaspa-miner
-          asset_name="kaspa-miner-${{ github.event.release.tag_name }}-cpu-only-osx-amd64"
+          cargo build --target=x86_64-apple-darwin --release -p pyrin-miner
+          asset_name="pyrin-miner-${{ github.event.release.tag_name }}-cpu-only-osx-amd64"
           mkdir ${asset_name}
-          mv ./target/x86_64-apple-darwin/release/kaspa-miner ${asset_name}/${asset_name}
+          mv ./target/x86_64-apple-darwin/release/pyrin-miner ${asset_name}/${asset_name}
           tar czvf ${asset_name}.tgz ${asset_name}
           echo "archive=${asset_name}.tgz" >> $GITHUB_ENV
           echo "asset_name=${asset_name}.tgz" >> $GITHUB_ENV
@@ -144,13 +144,13 @@ jobs:
       - name: Build ${{ matrix.itegration }} Script
         run: |
           cargo build --target=x86_64-unknown-linux-gnu --release --all
-          binary_name="kaspa-miner-${{ github.event.release.tag_name }}-linux-gnu-amd64"
-          asset_name="kaspa-miner-${{ matrix.itegration }}"
-          strip ./target/x86_64-unknown-linux-gnu/release/kaspa-miner
-          mkdir kaspa-miner
-          mv ./target/x86_64-unknown-linux-gnu/release/kaspa-miner kaspa-miner/${binary_name}
-          mv ./target/x86_64-unknown-linux-gnu/release/libkaspa*.so kaspa-miner/
-          bash integrations/${{ matrix.itegration }}/build.sh "${{ github.event.release.tag_name }}" "${binary_name}" kaspa-miner 
+          binary_name="pyrin-miner-${{ github.event.release.tag_name }}-linux-gnu-amd64"
+          asset_name="pyrin-miner-${{ matrix.itegration }}"
+          strip ./target/x86_64-unknown-linux-gnu/release/pyrin-miner
+          mkdir pyrin-miner
+          mv ./target/x86_64-unknown-linux-gnu/release/pyrin-miner pyrin-miner/${binary_name}
+          mv ./target/x86_64-unknown-linux-gnu/release/libkaspa*.so pyrin-miner/
+          bash integrations/${{ matrix.itegration }}/build.sh "${{ github.event.release.tag_name }}" "${binary_name}" pyrin-miner 
           echo "archive=${asset_name}.tgz" >> $GITHUB_ENV
           echo "asset_name=${asset_name}.tgz" >> $GITHUB_ENV
 

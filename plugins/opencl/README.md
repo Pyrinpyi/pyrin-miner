@@ -1,4 +1,4 @@
-# OpenCL support for Kaspa-Miner
+# OpenCL support for Pyrin-Miner
 
 This is an experimental plugin to support opencl.
 

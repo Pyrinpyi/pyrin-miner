@@ -1,16 +1,16 @@
 // RPC-related types. Request messages, response messages, and dependant types.
 //
-// Clients are expected to build RequestMessages and wrap them in KaspadMessage. (see messages.proto)
+// Clients are expected to build RequestMessages and wrap them in PyipadMessage. (see messages.proto)
 //
-// Having received a RequestMessage, (wrapped in a KaspadMessage) the RPC server will respond with a
-// ResponseMessage (likewise wrapped in a KaspadMessage) respective to the original RequestMessage.
+// Having received a RequestMessage, (wrapped in a PyipadMessage) the RPC server will respond with a
+// ResponseMessage (likewise wrapped in a PyipadMessage) respective to the original RequestMessage.
 //
 // **IMPORTANT:** This API is a work in progress and is subject to break between versions.
 //
 syntax = "proto3";
 package protowire;
 
-option go_package = "github.com/kaspanet/kaspad/protowire";
+option go_package = "github.com/Pyrinpyi/pyipad/protowire";
 
 // RPCError represents a generic non-internal error.
 //
@@ -115,7 +115,7 @@ message RpcTransactionOutputVerboseData{
   string scriptPublicKeyAddress = 6;
 }
 
-// GetCurrentNetworkRequestMessage requests the network kaspad is currently running against.
+// GetCurrentNetworkRequestMessage requests the network pyrin is currently running against.
 //
 // Possible networks are: Mainnet, Testnet, Simnet, Devnet
 message GetCurrentNetworkRequestMessage{
@@ -150,7 +150,7 @@ message SubmitBlockResponseMessage{
 //
 // See: SubmitBlockRequestMessage
 message GetBlockTemplateRequestMessage{
-  // Which kaspa address should the coinbase block reward transaction pay into
+  // Which pyrin address should the coinbase block reward transaction pay into
   string payAddress = 1;
   string extraData = 2;
 }
@@ -158,9 +158,9 @@ message GetBlockTemplateRequestMessage{
 message GetBlockTemplateResponseMessage{
   RpcBlock block = 3;
 
-  // Whether kaspad thinks that it's synced.
-  // Callers are discouraged (but not forbidden) from solving blocks when kaspad is not synced.
-  // That is because when kaspad isn't in sync with the rest of the network there's a high
+  // Whether pyrin thinks that it's synced.
+  // Callers are discouraged (but not forbidden) from solving blocks when pyrin is not synced.
+  // That is because when pyrin isn't in sync with the rest of the network there's a high
   // chance the block will never be accepted, thus the solving effort would have been wasted.
   bool isSynced = 2;
 
@@ -185,7 +185,7 @@ message BlockAddedNotificationMessage{
   RpcBlock block = 3;
 }
 
-// GetPeerAddressesRequestMessage requests the list of known kaspad addresses in the
+// GetPeerAddressesRequestMessage requests the list of known pyrin addresses in the
 // current network. (mainnet, testnet, etc.)
 message GetPeerAddressesRequestMessage{
 }
@@ -240,7 +240,7 @@ message MempoolEntry{
 }
 
 // GetConnectedPeerInfoRequestMessage requests information about all the p2p peers
-// currently connected to this kaspad.
+// currently connected to this pyrin.
 message GetConnectedPeerInfoRequestMessage{
 }
 
@@ -256,7 +256,7 @@ message GetConnectedPeerInfoMessage{
   // How long did the last ping/pong exchange take
   int64 lastPingDuration = 3;
 
-  // Whether this kaspad initiated the connection
+  // Whether this pyrin initiated the connection
   bool isOutbound = 6;
   int64 timeOffset = 7;
   string userAgent = 8;
@@ -264,15 +264,15 @@ message GetConnectedPeerInfoMessage{
   // The protocol version that this peer claims to support
   uint32 advertisedProtocolVersion = 9;
 
-  // The timestamp of when this peer connected to this kaspad
+  // The timestamp of when this peer connected to this pyrin
   int64 timeConnected = 10;
 
   // Whether this peer is the IBD peer (if IBD is running)
   bool isIbdPeer = 11;
 }
 
-// AddPeerRequestMessage adds a peer to kaspad's outgoing connection list.
-// This will, in most cases, result in kaspad connecting to said peer.
+// AddPeerRequestMessage adds a peer to pyrin's outgoing connection list.
+// This will, in most cases, result in pyrin connecting to said peer.
 message AddPeerRequestMessage{
   string address = 1;
 
@@ -346,9 +346,15 @@ message GetSubnetworkResponseMessage{
 }
 
 // GetVirtualSelectedParentChainFromBlockRequestMessage requests the virtual selected
-// parent chain from some startHash to this kaspad's current virtual
+// parent chain from some startHash to this pyrin's current virtual
 message GetVirtualSelectedParentChainFromBlockRequestMessage{
   string startHash = 1;
+  bool includeAcceptedTransactionIds = 2;
+}
+
+message AcceptedTransactionIds{
+  string acceptingBlockHash = 1;
+  repeated string acceptedTransactionIds = 2;
 }
 
 message GetVirtualSelectedParentChainFromBlockResponseMessage{
@@ -358,11 +364,15 @@ message GetVirtualSelectedParentChainFromBlockResponseMessage{
   // The chain blocks that were added, in low-to-high order
   repeated string addedChainBlockHashes = 3;
 
+  // The transactions accepted by each block in addedChainBlockHashes.
+  // Will be filled only if `includeAcceptedTransactionIds = true` in the request.
+  repeated AcceptedTransactionIds acceptedTransactionIds = 2;
+
   RPCError error = 1000;
 }
 
 // GetBlocksRequestMessage requests blocks between a certain block lowHash up to this
-// kaspad's current virtual.
+// pyrin's current virtual.
 message GetBlocksRequestMessage{
   string lowHash = 1;
   bool includeBlocks = 2;
@@ -375,7 +385,7 @@ message GetBlocksResponseMessage{
   RPCError error = 1000;
 }
 
-// GetBlockCountRequestMessage requests the current number of blocks in this kaspad.
+// GetBlockCountRequestMessage requests the current number of blocks in this pyrin.
 // Note that this number may decrease as pruning occurs.
 message GetBlockCountRequestMessage{
 }
@@ -387,7 +397,7 @@ message GetBlockCountResponseMessage{
 }
 
 // GetBlockDagInfoRequestMessage requests general information about the current state
-// of this kaspad's DAG.
+// of this pyrin's DAG.
 message GetBlockDagInfoRequestMessage{
 }
 
@@ -427,7 +437,7 @@ message FinalityConflictResolvedNotificationMessage{
   string finalityBlockHash = 1;
 }
 
-// ShutDownRequestMessage shuts down this kaspad.
+// ShutDownRequestMessage shuts down this pyrin.
 message ShutDownRequestMessage{
 }
 
@@ -451,11 +461,11 @@ message GetHeadersResponseMessage{
 // NotifyUtxosChangedRequestMessage registers this connection for utxoChanged notifications
 // for the given addresses.
 //
-// This call is only available when this kaspad was started with `--utxoindex`
+// This call is only available when this pyrin was started with `--utxoindex`
 //
 // See: UtxosChangedNotificationMessage
 message NotifyUtxosChangedRequestMessage {
-  repeated string addresses = 1;
+  repeated string addresses = 1; // Leave empty to get all updates
 }
 
 message NotifyUtxosChangedResponseMessage {
@@ -479,7 +489,7 @@ message UtxosByAddressesEntry {
 // StopNotifyingUtxosChangedRequestMessage unregisters this connection for utxoChanged notifications
 // for the given addresses.
 //
-// This call is only available when this kaspad was started with `--utxoindex`
+// This call is only available when this pyrin was started with `--utxoindex`
 //
 // See: UtxosChangedNotificationMessage
 message StopNotifyingUtxosChangedRequestMessage {
@@ -490,9 +500,9 @@ message StopNotifyingUtxosChangedResponseMessage {
   RPCError error = 1000;
 }
 
-// GetUtxosByAddressesRequestMessage requests all current UTXOs for the given kaspad addresses
+// GetUtxosByAddressesRequestMessage requests all current UTXOs for the given pyrin addresses
 //
-// This call is only available when this kaspad was started with `--utxoindex`
+// This call is only available when this pyrin was started with `--utxoindex`
 message GetUtxosByAddressesRequestMessage {
   repeated string addresses = 1;
 }
@@ -505,7 +515,7 @@ message GetUtxosByAddressesResponseMessage {
 
 // GetBalanceByAddressRequest returns the total balance in unspent transactions towards a given address
 //
-// This call is only available when this kaspad was started with `--utxoindex`
+// This call is only available when this pyrin was started with `--utxoindex`
 message GetBalanceByAddressRequestMessage {
   string address = 1;
 }
@@ -585,7 +595,7 @@ message VirtualDaaScoreChangedNotificationMessage {
 // NotifyPruningPointUTXOSetOverrideRequestMessage registers this connection for
 // pruning point UTXO set override notifications.
 //
-// This call is only available when this kaspad was started with `--utxoindex`
+// This call is only available when this pyrin was started with `--utxoindex`
 //
 // See: NotifyPruningPointUTXOSetOverrideResponseMessage
 message NotifyPruningPointUTXOSetOverrideRequestMessage {
@@ -606,7 +616,7 @@ message PruningPointUTXOSetOverrideNotificationMessage {
 // StopNotifyingPruningPointUTXOSetOverrideRequestMessage unregisters this connection for
 // pruning point UTXO set override notifications.
 //
-// This call is only available when this kaspad was started with `--utxoindex`
+// This call is only available when this pyrin was started with `--utxoindex`
 //
 // See: PruningPointUTXOSetOverrideNotificationMessage
 message StopNotifyingPruningPointUTXOSetOverrideRequestMessage {
@@ -642,6 +652,8 @@ message GetInfoResponseMessage{
   string p2pId = 1;
   uint64 mempoolSize = 2;
   string serverVersion = 3;
+  bool isUtxoIndexed = 4;
+  bool isSynced = 5;
   RPCError error = 1000;
 }
 
@@ -673,4 +685,30 @@ message NotifyNewBlockTemplateResponseMessage {
 message NewBlockTemplateNotificationMessage {
 }
 
+message MempoolEntryByAddress{
+  string address = 1;
+  repeated MempoolEntry sending = 2;
+  repeated MempoolEntry receiving = 3;
+}
 
+message GetMempoolEntriesByAddressesRequestMessage{
+  repeated string addresses = 1;
+  bool includeOrphanPool = 2;
+  bool filterTransactionPool = 3;
+}
+
+message  GetMempoolEntriesByAddressesResponseMessage{
+  repeated MempoolEntryByAddress entries = 1;
+
+  RPCError error = 1000;
+}
+
+message GetCoinSupplyRequestMessage{
+}
+
+message GetCoinSupplyResponseMessage{
+        uint64 maxLeor = 1; // note: this is a hard coded maxSupply, actual maxSupply is expected to deviate by upto -5%, but cannot be measured exactly.
+        uint64 circulatingLeor = 2;
+
+        RPCError error = 1000;
+}

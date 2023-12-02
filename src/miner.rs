@@ -13,7 +13,7 @@ use tokio::task::{self, JoinHandle};
 use tokio::time::MissedTickBehavior;
 
 use crate::pow::BlockSeed;
-use kaspa_miner::{PluginManager, WorkerSpec};
+use pyrin_miner::{PluginManager, WorkerSpec};
 
 type MinerHandler = std::thread::JoinHandle<Result<(), Error>>;
 
@@ -209,7 +209,7 @@ impl MinerManager {
                     return Ok(());
                 }
                 self.is_synced = false;
-                warn!("Kaspad is not synced, skipping current template");
+                warn!("Pyipad is not synced, skipping current template");
                 None
             }
         };

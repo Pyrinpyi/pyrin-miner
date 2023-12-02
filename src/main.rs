@@ -30,7 +30,7 @@ mod pow;
 mod target;
 mod watch;
 
-const WHITELIST: [&str; 4] = ["libkaspacuda", "libkaspaopencl", "kaspacuda", "kaspaopencl"];
+const WHITELIST: [&str; 4] = ["libpyrincuda", "libpyrinopencl", "pyrincuda", "pyrinopencl"];
 
 pub mod proto {
     #![allow(clippy::derive_partial_eq_without_eq)]
@@ -69,13 +69,13 @@ fn filter_plugins(dirname: &str) -> Vec<String> {
 }
 
 async fn get_client(
-    kaspad_address: String,
+    pyrin_address: String,
     mining_address: String,
     mine_when_not_synced: bool,
     block_template_ctr: Arc<AtomicU16>,
 ) -> Result<Box<dyn Client + 'static>, Error> {
-    if kaspad_address.starts_with("stratum+tcp://") {
-        let (_schema, address) = kaspad_address.split_once("://").unwrap();
+    if pyrin_address.starts_with("stratum+tcp://") {
+        let (_schema, address) = pyrin_address.split_once("://").unwrap();
         Ok(StratumHandler::connect(
             address.to_string().clone(),
             mining_address.clone(),
@@ -83,9 +83,9 @@ async fn get_client(
             Some(block_template_ctr.clone()),
         )
         .await?)
-    } else if kaspad_address.starts_with("grpc://") {
+    } else if pyrin_address.starts_with("grpc://") {
         Ok(PyipadHandler::connect(
-            kaspad_address.clone(),
+            pyrin_address.clone(),
             mining_address.clone(),
             mine_when_not_synced,
             Some(block_template_ctr.clone()),
@@ -102,7 +102,7 @@ async fn client_main(
     plugin_manager: &PluginManager,
 ) -> Result<(), Error> {
     let mut client = get_client(
-        opt.kaspad_address.clone(),
+        opt.pyrin_address.clone(),
         opt.mining_address.clone(),
         opt.mine_when_not_synced,
         block_template_ctr.clone(),

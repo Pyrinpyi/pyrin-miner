@@ -777,32 +777,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1aab8fc367588b89dcee83ab0fd66b72b50b72fa1904d7095045ace2b0c81c35"
 
 [[package]]
-name = "kaspacuda"
-version = "0.1.0"
-dependencies = [
- "clap",
- "cust",
- "env_logger",
- "log",
- "nvml-wrapper",
- "pyrin-miner",
- "rand 0.8.4",
-]
-
-[[package]]
-name = "kaspaopencl"
-version = "0.1.0"
-dependencies = [
- "clap",
- "env_logger",
- "include_dir",
- "log",
- "opencl3",
- "pyrin-miner",
- "rand 0.8.4",
-]
-
-[[package]]
 name = "keccak"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1305,6 +1279,32 @@ dependencies = [
  "tonic",
  "tonic-build",
  "win32console",
+]
+
+[[package]]
+name = "pyrincuda"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "cust",
+ "env_logger",
+ "log",
+ "nvml-wrapper",
+ "pyrin-miner",
+ "rand 0.8.4",
+]
+
+[[package]]
+name = "pyrinopencl"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "env_logger",
+ "include_dir",
+ "log",
+ "opencl3",
+ "pyrin-miner",
+ "rand 0.8.4",
 ]
 
 [[package]]

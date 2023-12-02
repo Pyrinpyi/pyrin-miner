@@ -56,7 +56,7 @@ impl Client for PyipadHandler {
         while let Some(msg) = self.stream.message().await? {
             match msg.payload {
                 Some(payload) => self.handle_message(payload, miner).await?,
-                None => warn!("kaspad message payload is empty"),
+                None => warn!("pyrin message payload is empty"),
             }
         }
         Ok(())
@@ -159,9 +159,9 @@ impl PyipadHandler {
             }
             Payload::GetInfoResponse(info) => {
                 info!("Pyipad version: {}", info.server_version);
-                let kaspad_version = Version::parse(&info.server_version)?;
+                let pyrin_version = Version::parse(&info.server_version)?;
                 let update_version = Version::parse(VERSION_UPDATE)?;
-                match kaspad_version >= update_version {
+                match pyrin_version >= update_version {
                     true => self.client_send(NotifyNewBlockTemplateRequestMessage {}).await?,
                     false => self.client_send(NotifyBlockAddedRequestMessage {}).await?,
                 };

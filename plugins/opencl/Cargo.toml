@@ -1,5 +1,5 @@
 [package]
-name = "kaspaopencl"
+name = "pyrinopencl"
 version = "0.1.0"
 edition = "2021"
 

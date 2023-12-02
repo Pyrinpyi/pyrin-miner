@@ -485,7 +485,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "kaspacuda"
+name = "pyrincuda"
 version = "0.1.0"
 dependencies = [
  "clap",

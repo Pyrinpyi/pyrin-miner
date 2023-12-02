@@ -1,11 +1,11 @@
-# Kaspa-miner
+# Pyrin-miner
 [![Build status](https://github.com/tmrlvi/pyrin-miner/workflows/ci/badge.svg)](https://github.com/tmrlvi/pyrin-miner/actions)
 [![Latest version](https://img.shields.io/crates/v/pyrin-miner.svg)](https://crates.io/crates/pyrin-miner)
 ![License](https://img.shields.io/crates/l/pyrin-miner.svg)
 [![dependency status](https://deps.rs/repo/github/tmrlvi/pyrin-miner/status.svg)](https://deps.rs/repo/github/tmrlvi/pyrin-miner)
 
 [![Discord](https://discordapp.com/api/guilds/599153230659846165/embed.png)](https://discord.gg/kS3SK5F36R)
-[![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/Kaspaenglish)
+[![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/pyrinenglish)
 
 
 ## Installation
@@ -25,7 +25,7 @@ packages in the workspace. To compile a specific package, you run the following 
 ```sh
 git clone git@github.com:tmrlvi/pyrin-miner.git
 cd pyrin-miner
-cargo build --release -p pyrin-miner -p kaspacuda -p kaspaopencl
+cargo build --release -p pyrin-miner -p pyrincuda -p pyrinopencl
 ```
 And, the miner (and plugins) will be in `targets/release`. You can replace the last line with
 ```sh
@@ -38,23 +38,23 @@ The [release page](https://github.com/tmrlvi/pyrin-miner/releases) includes prec
 ### Removing Plugins
 To remove a plugin, you simply remove the corresponding `dll`/`so` for the directory of the miner. 
 
-* `libkaspacuda.so`, `libkaspacuda.dll`: Cuda support for Pyrin-Miner
-* `libkaspaopencl.so`, `libkaspaopencl.dll`: OpenCL support for Pyrin-Miner
+* `libpyrincuda.so`, `libpyrincuda.dll`: Cuda support for Pyrin-Miner
+* `libpyrinopencl.so`, `libpyrinopencl.dll`: OpenCL support for Pyrin-Miner
 
 # Usage
-To start mining, you need to run [kaspad](https://github.com/kaspanet/kaspad) and have an address to send the rewards to.
-Here is a guidance on how to run a full node and how to generate addresses: https://github.com/kaspanet/docs/blob/main/Getting%20Started/Full%20Node%20Installation.md
+To start mining, you need to run [pyrin](https://github.com/Pyrinpyi/pyipad) and have an address to send the rewards to.
+Here is a guidance on how to run a full node and how to generate addresses: https://github.com/pyrinnet/docs/blob/main/Getting%20Started/Full%20Node%20Installation.md
 
 Help:
 ```
 pyrin-miner 
-A Kaspa high performance CPU miner
+A Pyrin high performance CPU miner
 
 USAGE:
     pyrin-miner [OPTIONS] --mining-address <MINING_ADDRESS>
 
 OPTIONS:
-    -a, --mining-address <MINING_ADDRESS>                  The Kaspa address for the miner reward
+    -a, --mining-address <MINING_ADDRESS>                  The Pyrin address for the miner reward
         --cuda-device <CUDA_DEVICE>                        Which CUDA GPUs to use [default: all]
         --cuda-disable                                     Disable cuda workers
         --cuda-lock-core-clocks <CUDA_LOCK_CORE_CLOCKS>    Lock core clocks eg: ,1200, [default: 0]
@@ -66,7 +66,7 @@ OPTIONS:
     -d, --debug                                            Enable debug logging level
         --experimental-amd                                 Uses SMID instructions in AMD. Miner will crash if instruction is not supported
     -h, --help                                             Print help information
-        --mine-when-not-synced                             Mine even when kaspad says it is not synced
+        --mine-when-not-synced                             Mine even when pyrin says it is not synced
         --nonce-gen <NONCE_GEN>                            The random method used to generate nonces. Options: (i) xoshiro (ii) lean [default: lean]
         --opencl-amd-disable                               Disables AMD mining (does not override opencl-enable)
         --opencl-device <OPENCL_DEVICE>                    Which OpenCL GPUs to use on a specific platform
@@ -76,7 +76,7 @@ OPTIONS:
         --opencl-workload <OPENCL_WORKLOAD>                Ratio of nonces to GPU possible parrallel run in OpenCL [default: 512]
         --opencl-workload-absolute                         The values given by workload are not ratio, but absolute number of nonces in OpenCL [default: false]
     -p, --port <PORT>                                      Pyipad port [default: Mainnet = 16110, Testnet = 16211]
-    -s, --kaspad-address <KASPAD_ADDRESS>                  The IP of the kaspad instance [default: 127.0.0.1]
+    -s, --pyrin-address <pyrin_ADDRESS>                  The IP of the pyrin instance [default: 127.0.0.1]
     -t, --threads <NUM_THREADS>                            Amount of CPU miner threads to launch [default: 0]
         --testnet                                          Use testnet instead of mainnet [default: false]
 ```

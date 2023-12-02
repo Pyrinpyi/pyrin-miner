@@ -11,7 +11,7 @@ jobs:
       matrix:
         # Build gnu-linux on ubuntu-18.04 and musl on ubuntu latest
         os: [ ubuntu-18.04, windows-latest, macos-latest ]
-        features: ["default", "kaspacuda/overclock "]
+        features: ["default", "pyrincuda/overclock "]
     name: Building, ${{ matrix.os }} ${{ matrix.features }}
     steps:
       - name: Fix CRLF on Windows
@@ -63,7 +63,7 @@ jobs:
           strip ./target/x86_64-unknown-linux-gnu/release/pyrin-miner
           mkdir ${asset_name}
           mv ./target/x86_64-unknown-linux-gnu/release/pyrin-miner ${asset_name}/${asset_name}
-          mv ./target/x86_64-unknown-linux-gnu/release/libkaspa*.so ${asset_name}/
+          mv ./target/x86_64-unknown-linux-gnu/release/libpyrin*.so ${asset_name}/
           tar czvf ${asset_name}.tgz ${asset_name}
           echo "archive=${asset_name}.tgz" >> $GITHUB_ENV
           echo "asset_name=${asset_name}.tgz" >> $GITHUB_ENV
@@ -78,7 +78,7 @@ jobs:
           asset_name="pyrin-miner-${{ github.event.release.tag_name }}-${feature_name/\//-}-win64-amd64"
           mkdir ${asset_name}
           mv ./target/x86_64-pc-windows-msvc/release/pyrin-miner.exe ${asset_name}/${asset_name}.exe
-          mv ./target/x86_64-pc-windows-msvc/release/kaspa*.dll ${asset_name}/
+          mv ./target/x86_64-pc-windows-msvc/release/pyrin*.dll ${asset_name}/
           bash ./integrations/windows/create_bat.sh ${asset_name}
           7z a -tzip -r ${asset_name}.zip ${asset_name}
           echo "archive=${asset_name}.zip" >> $GITHUB_ENV
@@ -149,7 +149,7 @@ jobs:
           strip ./target/x86_64-unknown-linux-gnu/release/pyrin-miner
           mkdir pyrin-miner
           mv ./target/x86_64-unknown-linux-gnu/release/pyrin-miner pyrin-miner/${binary_name}
-          mv ./target/x86_64-unknown-linux-gnu/release/libkaspa*.so pyrin-miner/
+          mv ./target/x86_64-unknown-linux-gnu/release/libpyrin*.so pyrin-miner/
           bash integrations/${{ matrix.itegration }}/build.sh "${{ github.event.release.tag_name }}" "${binary_name}" pyrin-miner 
           echo "archive=${asset_name}.tgz" >> $GITHUB_ENV
           echo "asset_name=${asset_name}.tgz" >> $GITHUB_ENV

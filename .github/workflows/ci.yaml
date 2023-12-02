@@ -128,11 +128,11 @@ jobs:
           command: test
           args: -p pyrin-miner --no-default-features --features=shuttle
 
-      - name: Run cargo test for kaspaopencl
+      - name: Run cargo test for pyrinopencl
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: -p kaspaopencl
+          args: -p pyrinopencl
 
 
   test-release:
@@ -217,11 +217,11 @@ jobs:
           command: test
           args: --no-default-features --features=shuttle --release -p pyrin-miner
 
-      - name: Run cargo test for kaspaopencl
+      - name: Run cargo test for pyrinopencl
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --release -p kaspaopencl
+          args: --release -p pyrinopencl
 
   lints:
     name: Lints

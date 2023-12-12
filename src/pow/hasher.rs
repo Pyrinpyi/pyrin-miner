@@ -98,6 +98,7 @@ impl Hasher for HeaderHasher {
 
 #[cfg(test)]
 mod tests {
+    use std::io::Write;
     use crate::pow::hasher::{HeavyHasher, PowHasher};
     use crate::Hash;
     use sha3::digest::{ExtendableOutput, Update, XofReader};
@@ -114,13 +115,18 @@ mod tests {
         let hasher = PowHasher::new(pre_pow_hash, timestamp);
         let hash1 = hasher.finalize_with_nonce(nonce);
 
-        let hasher = CShake256::new(PROOF_OF_WORK_DOMAIN)
-            .chain(pre_pow_hash.to_le_bytes())
-            .chain(timestamp.to_le_bytes())
-            .chain([0u8; 32])
-            .chain(nonce.to_le_bytes());
+        let mut hasher = blake3::Hasher::new();
+        let a1 = unsafe { std::mem::transmute(pre_pow_hash.to_le_bytes()) };
+        let a2 = unsafe { std::mem::transmute(timestamp.to_le_bytes()) };
+        let a3 = unsafe { std::mem::transmute([0u8; 32]) };
+        let a4 = unsafe { std::mem::transmute(nonce.to_le_bytes()) };
+        hasher.write(a1);
+        hasher.write(a2);
+        hasher.write(a3);
+        hasher.write(a4);
+
         let mut hash2 = [0u8; 32];
-        hasher.finalize_xof().read(&mut hash2);
+        hasher.finalize_xof().fill(&mut hash2);
         assert_eq!(Hash::from_le_bytes(hash2), hash1);
     }
 
@@ -129,9 +135,12 @@ mod tests {
         let val = Hash::from_le_bytes([42; 32]);
         let hash1 = HeavyHasher::hash(val);
 
-        let hasher = CShake256::new(HEAVY_HASH_DOMAIN).chain(val.to_le_bytes());
+        let mut hasher = blake3::Hasher::new();
+        let bytes = unsafe { std::mem::transmute(val.to_le_bytes()) };
+        hasher.write(bytes);
+
         let mut hash2 = [0u8; 32];
-        hasher.finalize_xof().read(&mut hash2);
+        hasher.finalize_xof().fill(&mut hash2);
         assert_eq!(Hash::from_le_bytes(hash2), hash1);
     }
 }

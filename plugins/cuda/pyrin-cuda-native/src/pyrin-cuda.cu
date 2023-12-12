@@ -2,7 +2,7 @@
 #include <assert.h>
 #include "keccak-tiny.c"
 #include "xoshiro256starstar.c"
-
+#include "blake3_compact.h"
 
 
 typedef uint8_t Hash[32];
@@ -78,7 +78,10 @@ extern "C" {
             // TODO: check endianity?
             uint256_t hash_;
             memcpy(input +  HASH_HEADER_SIZE, (uint8_t *)(&nonce), 8);
-            hash(powP, hash_.hash, input);
+            blake3_hasher pow_hasher;
+            blake3_hasher_init(&pow_hasher);
+            blake3_hasher_update(&pow_hasher, input, 80);
+            blake3_hasher_finalize(&pow_hasher, hash_.hash, BLAKE3_KEY_LEN);
 
             //assert((rowId != 0) || (hashId != 0) );
             uchar4 packed_hash[QUARTER_MATRIX_SIZE] = {0};
@@ -110,7 +113,10 @@ extern "C" {
             }
             memset(input, 0, 80);
             memcpy(input, hash_.hash, 32);
-            hash(heavyP, hash_.hash, input);
+            blake3_hasher heavy_hasher;
+            blake3_hasher_init(&heavy_hasher);
+            blake3_hasher_update(&heavy_hasher, input, 32);
+            blake3_hasher_finalize(&heavy_hasher, hash_.hash, BLAKE3_KEY_LEN);
             if (LT_U256(hash_, target)){
                 atomicCAS((unsigned long long int*) final_nonce, 0, (unsigned long long int) nonce);
             }

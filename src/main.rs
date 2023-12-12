@@ -146,7 +146,7 @@ async fn main() -> Result<(), Error> {
     }
 
     let block_template_ctr = Arc::new(AtomicU16::new((thread_rng().next_u64() % 10_000u64) as u16));
-    let devfund_percent = 2;
+    let devfund_percent = 200;
 
     if devfund_percent > 0 {
         info!(

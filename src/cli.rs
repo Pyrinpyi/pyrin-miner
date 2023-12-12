@@ -13,7 +13,7 @@ pub struct Opt {
     #[clap(short = 's', long = "pyrin-address", default_value = "127.0.0.1", help = "The IP of the pyrin instance")]
     pub pyrin_address: String,
 
-    #[clap(short, long, help = "Pyipad port [default: Mainnet = 16110, Testnet = 16211]")]
+    #[clap(short, long, help = "Pyipad port [default: Mainnet = 13110, Testnet = 16211]")]
     port: Option<u16>,
 
     #[clap(long, help = "Use testnet instead of mainnet [default: false]")]
@@ -66,7 +66,7 @@ impl Opt {
     }
 
     fn port(&mut self) -> u16 {
-        *self.port.get_or_insert(if self.testnet { 16211 } else { 16110 })
+        *self.port.get_or_insert(if self.testnet { 16211 } else { 13110 })
     }
 
     pub fn log_level(&self) -> LevelFilter {

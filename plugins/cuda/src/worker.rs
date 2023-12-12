@@ -175,7 +175,7 @@ impl<'gpu> CudaGPUWorker<'gpu> {
                 error!("Error loading PTX. Make sure you have the updated driver for you devices");
                 e
             })?);
-        } else if major >= 3 {
+        }/* else if major >= 3 {
             _module = Arc::new(Module::from_ptx(PTX_30, &[ModuleJitOption::OptLevel(OptLevel::O4)]).map_err(|e| {
                 error!("Error loading PTX. Make sure you have the updated driver for you devices");
                 e
@@ -185,7 +185,7 @@ impl<'gpu> CudaGPUWorker<'gpu> {
                 error!("Error loading PTX. Make sure you have the updated driver for you devices");
                 e
             })?);
-        } else {
+        }*/ else {
             return Err("Cuda compute version not supported".into());
         }
 

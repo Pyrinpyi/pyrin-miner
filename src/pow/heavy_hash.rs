@@ -117,7 +117,7 @@ impl Matrix {
                 sum1 += self.0[2 * i][j] * (elem as u16);
                 sum2 += self.0[2 * i + 1][j] * (elem as u16);
             }
-            ((sum1 >> 10) << 4) as u8 | (sum2 >> 10) as u8
+            (((sum1 & 0xF) ^ ((sum1 >> 4) & 0xF) ^ ((sum1 >> 8) & 0xF)) << 4) as u8 | ((sum2 & 0xF) ^ ((sum2 >> 4) & 0xF) ^ ((sum2 >> 8) & 0xF)) as u8
         });
 
         // Concatenate 4 LSBs back to 8 bit xor with sum1
